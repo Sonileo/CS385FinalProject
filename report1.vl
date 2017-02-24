@@ -113,12 +113,13 @@ endmodule
 
 module mux2x1(A,B,select,OUT); 
    input A,B,select; 
-   output OUT; 
-   reg OUT;
+   output OUT;
+   wire notS,andA,andB;
 
-   always @ (select or A or B) 
-         if (select == 0) OUT = A; 
-         else OUT = B; 
+   not g1(notS,select);
+   and g2(andA,A,notS),
+       g3(andB,B,select);
+   or  g4(OUT,andA,andB); 
 endmodule 
 
 module mux4x1(a_and_b,a_or_b,sum,less,op[1:0],result); 
