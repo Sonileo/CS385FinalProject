@@ -67,10 +67,10 @@ module mux4x1(i0,i1,i2,i3,select,y);
    
    wire a,b,c,d;
    
-   and 		a0(a,i0,!s1,!s0),
-			a1(b,i1, s1,!s0),
-			a2(c,i2, s1,!s0),
-			a3(d,i3, s1, s0);
+   and 		a0(a,i0,!select[1],!select[0]),
+			a1(b,i1, select[1],!select[0]),
+			a2(c,i2, select[1],!select[0]),
+			a3(d,i3, select[1], select[0]);
 			
 	or		o0(y,a,b,c,d);
    
