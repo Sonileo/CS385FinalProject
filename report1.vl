@@ -55,7 +55,7 @@ module ALU (op,a,b,result,zero);
 endmodule
 
 
-// 1-bit ALU for bits 0-2
+// 1-bit ALU for bits 0-14
 
 module ALU1 (a,b,binvert,op,less,carryin,carryout,result);
    input a,b,less,carryin,binvert;
@@ -114,24 +114,25 @@ endmodule
 module mux2x1(A,B,select,OUT); 
    input A,B,select; 
    output OUT; 
-   reg OUT; 
+   reg OUT;
+
    always @ (select or A or B) 
          if (select == 0) OUT = A; 
          else OUT = B; 
 endmodule 
 
-module mux4x1(i0,i1,i2,i3,select,y); 
-   input i0,i1,i2,i3; 
-   input [1:0] select; 
-   output y; 
-   reg y; 
-   always @ (i0 or i1 or i2 or i3 or select) 
-            case (select) 
-               2'b00: y = i0; 
-               2'b01: y = i1; 
-               2'b10: y = i2; 
-               2'b11: y = i3; 
-            endcase 
+module mux4x1(a_and_b,a_or_b,sum,less,op[1:0],result); 
+   input a_and_b,a_or_b,sum,less;
+   input [1:0] op;
+   wire a,b,c,d,notOp0,notOp1;
+   output result;
+   not g1(notOp0,op[0]); // S0
+   not g2(notOp1,op[1]); // S1
+   and g3(a,a_and_b,notOp1,notOp0), // AND operation - 00
+       g4(b,a_or_b,notOp1,op[0]),   // OR operation - 01
+       g5(c,sum,op[1],notOp0),  // ADD operation - 10
+       g6(d,less,op[1],op[0]);     // SLT operation - 11
+   or  g7(result,a,b,c,d);
 endmodule 
 
 module check_zero(zero,result);
