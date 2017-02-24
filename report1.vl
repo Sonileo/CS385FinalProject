@@ -49,9 +49,8 @@ module ALU (op,a,b,result,zero);
    ALU1   alu2 (a[14],b[14],op[2],op[1:0],0,c14,c15,result[14]);
    ALUmsb alu3 (a[15],b[15],op[2],op[1:0],0,c15,c16,result[15],set);
 
-   or or1(or01, result[0],result[1]);
-   or or2(or23, result[2],result[3]);
-   nor nor1(zero,or01,or23);
+   // If result = 0 then zero = 1
+   check_zero cz(zero,result);
 
 endmodule
 
@@ -134,6 +133,30 @@ module mux4x1(i0,i1,i2,i3,select,y);
                2'b11: y = i3; 
             endcase 
 endmodule 
+
+module check_zero(zero,result);
+  input [15:0] result;
+  wire z[14:0];
+  output zero;
+
+  or g5(z[0],result[0],result[1]);
+  or g6(z[1],result[2],result[3]);
+  or g7(z[2],result[4],result[5]);
+  or g8(z[3],result[6],result[7]);
+  or g9(z[4],result[8],result[9]);
+  or g1(z[5],result[10],result[11]);
+  or g2(z[6],result[12],result[13]);
+  or g3(z[7],result[14],result[15]);
+  or g4(z[8],z[0],z[1]);
+  or g10(z[9],z[2],z[3]);
+  or g11(z[10],z[4],z[5]);
+  or g12(z[11],z[6],z[7]);
+  or g13(z[12],z[8],z[9]);
+  or g14(z[13],z[10],z[11]);
+  or g15(z[14],z[12],z[13]);
+  xnor g8(zero,z[14],0);
+endmodule
+
 
 // ----------------  End ALU  ---------------------------
 
