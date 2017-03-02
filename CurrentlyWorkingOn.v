@@ -1,10 +1,10 @@
-// Simplified version of MIPS register file (4 registers, 1-bit data)
+/*
+By: Daniel Kostecki, Sonia Leonato, Thi Nguyen
+Class: CS 385
+Progress Report 1
+*/
 
-// For the project MIPS (4-registers, 16-bit data):
-//  1. Change the D flip-flops with 16-bit registers
-//  2. Redesign mux4x1 using gate-level modeling
-
-
+//16-bit register
 module reg_file (rr1,rr2,wr,wd,regwrite,rd1,rd2,clock);
 
    input [1:0] rr1,rr2,wr;
@@ -13,17 +13,15 @@ module reg_file (rr1,rr2,wr,wd,regwrite,rd1,rd2,clock);
    output [15:0] rd1,rd2;
 
 // registers
-   register r1 (wd,c1,q1);
-		    r2 (wd,c2,q2);
+   register r1 (wd,c1,q1),
+		    r2 (wd,c2,q2),
             r3 (wd,c3,q3);
 
 // output port
-
-   mux4x1 mux1 (0,q1,q2,q3,rr1,rd1),
-          mux2 (0,q1,q2,q3,rr2,rd2);
+   mux4x16 mux1(16'b0,q1,q2,q3,rr1,rd1),
+           mux2(16'b0,q1,q2,q3,rr2,rd2);
 
 // input port
-
    decoder dec(wr[1],wr[0],w3,w2,w1,w0);
 
    and a (regwrite_and_clock,regwrite,clock);
@@ -35,28 +33,27 @@ module reg_file (rr1,rr2,wr,wd,regwrite,rd1,rd2,clock);
 endmodule
 
 
-// Components
-
+// The register (16-bit D-flip flop)
 module register(D,CLK,Q);
    input [15:0]D;
    input CLK;
    output [15:0]Q;
    
-   D_flip_flop d1(D[0],CLK,Q[0]);
-			   d2(D[1],CLK,Q[1]);
-			   d3(D[2],CLK,Q[2]);
-			   d4(D[3],CLK,Q[3]);
-			   d5(D[4],CLK,Q[4]);
-			   d6(D[5],CLK,Q[5]);
-			   d7(D[6],CLK,Q[6]);
-			   d8(D[7],CLK,Q[7]);
-			   d9(D[8],CLK,Q[8]);
-			   d10(D[9],CLK,Q[9]);
-			   d11(D[10],CLK,Q[10]);
-			   d12(D[11],CLK,Q[11]);
-			   d13(D[12],CLK,Q[12]);
-			   d14(D[13],CLK,Q[13]);
-			   d15(D[14],CLK,Q[14]);
+   D_flip_flop d1(D[0],CLK,Q[0]),
+			   d2(D[1],CLK,Q[1]),
+			   d3(D[2],CLK,Q[2]),
+			   d4(D[3],CLK,Q[3]),
+			   d5(D[4],CLK,Q[4]),
+			   d6(D[5],CLK,Q[5]),
+			   d7(D[6],CLK,Q[6]),
+			   d8(D[7],CLK,Q[7]),
+			   d9(D[8],CLK,Q[8]),
+			   d10(D[9],CLK,Q[9]),
+			   d11(D[10],CLK,Q[10]),
+			   d12(D[11],CLK,Q[11]),
+			   d13(D[12],CLK,Q[12]),
+			   d14(D[13],CLK,Q[13]),
+			   d15(D[14],CLK,Q[14]),
 			   d16(D[15],CLK,Q[15]);
 endmodule 
 
@@ -80,6 +77,7 @@ module D_latch(D,C,Q);
    not  not1  (D1,D);
 endmodule 
 
+//Multiplexers
 module mux4x1(i0,i1,i2,i3,select,y); 
    input i0,i1,i2,i3; 
    input [1:0] select; 
@@ -133,6 +131,67 @@ module decoder (S1,S0,D3,D2,D1,D0);
        a2 (D2,   S1,notS0), 
        a3 (D3,   S1,   S0); 
 endmodule 
+
+// 16-bit ALU
+module ALU (op,a,b,result,zero);
+   input [15:0] a;
+   input [15:0] b;
+   input [2:0] op;
+   output [15:0] result;
+   output zero;
+   wire c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16;
+	
+   ALU1   a0  (a[0], b[0], op[2], op[1:0],set,op[2],c1, result[0]),
+		  a1  (a[1], b[1], op[2], op[1:0],0,  c1,   c2, result[1]),
+		  a2  (a[2], b[2], op[2], op[1:0],0,  c2,   c3, result[2]),
+		  a3  (a[3], b[3], op[2], op[1:0],0,  c3,   c4, result[3]),
+		  a4  (a[4], b[4], op[2], op[1:0],0,  c4,   c5, result[4]),
+		  a5  (a[5], b[5], op[2], op[1:0],0,  c5,   c6, result[5]),
+		  a6  (a[6], b[6], op[2], op[1:0],0,  c6,   c7, result[6]),
+		  a7  (a[7], b[7], op[2], op[1:0],0,  c7,   c8, result[7]),
+		  a8  (a[8], b[8], op[2], op[1:0],0,  c8,   c9, result[8]),
+		  a9  (a[9], b[9], op[2], op[1:0],0,  c9,   c10,result[9]),
+		  a10 (a[10],b[10],op[2], op[1:0],0,  c10,  c11,result[10]),
+		  a11 (a[11],b[11],op[2], op[1:0],0,  c11,  c12,result[11]),
+		  a12 (a[12],b[12],op[2], op[1:0],0,  c12,  c13,result[12]),
+		  a13 (a[13],b[13],op[2], op[1:0],0,  c13,  c14,result[13]),
+		  a14 (a[14],b[14],op[2], op[1:0],0,  c14,  c15,result[14]),
+   ALUmsb a15 (a[15],b[15],op[2], op[1:0],0,  c15,  c16,result[15],set);
+
+   or o1(or01, result[0],result[1]),
+	  o2(or23, result[2],result[3]);
+   nor nor1(zero,or01,or23);
+endmodule
+
+// 1-bit ALU (used for bits 0-14)
+module ALU1 (a,b,binvert,op,less,carryin,carryout,result);
+   input a,b,less,carryin,binvert;
+   input [1:0] op;
+   output carryout,result;
+   wire sum, a_and_b, a_or_b, b_inv;
+	
+   not not1(b_inv, b);
+   mux2x1 mux1(b,b_inv,binvert,b1);
+   and and1(a_and_b, a, b);
+   or or1(a_or_b, a, b);
+   fulladder adder1(sum,carryout,a,b1,carryin);
+   mux4x1 mux2(a_and_b,a_or_b,sum,less,op[1:0],result); 
+endmodule
+
+// 1-bit ALU (used for the rest)
+module ALUmsb (a,b,binvert,op,less,carryin,carryout,result,sum);
+   input a,b,less,carryin,binvert;
+   input [1:0] op;
+   output carryout,result,sum;
+   wire sum, a_and_b, a_or_b, b_inv;
+	
+   not not1(b_inv, b);
+   mux2x1 mux1(b,b_inv,binvert,b1);
+   and and1(a_and_b, a, b);
+   or or1(a_or_b, a, b);
+   fulladder adder1(sum,carryout,a,b1,carryin);
+   mux4x1 mux2(a_and_b,a_or_b,sum,less,op[1:0],result); 
+endmodule
 
 
 module testing ();
