@@ -14,8 +14,8 @@ module reg_file (rr1,rr2,wr,wd,regwrite,rd1,rd2,clock);
 
 // registers
 
-   register r1 (wd,c1,q1);
-		    r2 (wd,c2,q2);
+   register r1 (wd,c1,q1),
+		    r2 (wd,c2,q2),
             r3 (wd,c3,q3);
 
 // output port
@@ -43,21 +43,21 @@ module register(D,CLK,Q);
    input CLK;
    output [15:0]Q;
    
-   D_flip_flop d1(D[0],CLK,Q[0]);
-			   d2(D[1],CLK,Q[1]);
-			   d3(D[2],CLK,Q[2]);
-			   d4(D[3],CLK,Q[3]);
-			   d5(D[4],CLK,Q[4]);
-			   d6(D[5],CLK,Q[5]);
-			   d7(D[6],CLK,Q[6]);
-			   d8(D[7],CLK,Q[7]);
-			   d9(D[8],CLK,Q[8]);
-			   d10(D[9],CLK,Q[9]);
-			   d11(D[10],CLK,Q[10]);
-			   d12(D[11],CLK,Q[11]);
-			   d13(D[12],CLK,Q[12]);
-			   d14(D[13],CLK,Q[13]);
-			   d15(D[14],CLK,Q[14]);
+   D_flip_flop d1(D[0],CLK,Q[0]),
+			   d2(D[1],CLK,Q[1]),
+			   d3(D[2],CLK,Q[2]),
+			   d4(D[3],CLK,Q[3]),
+			   d5(D[4],CLK,Q[4]),
+			   d6(D[5],CLK,Q[5]),
+			   d7(D[6],CLK,Q[6]),
+			   d8(D[7],CLK,Q[7]),
+			   d9(D[8],CLK,Q[8]),
+			   d10(D[9],CLK,Q[9]),
+			   d11(D[10],CLK,Q[10]),
+			   d12(D[11],CLK,Q[11]),
+			   d13(D[12],CLK,Q[12]),
+			   d14(D[13],CLK,Q[13]),
+			   d15(D[14],CLK,Q[14]),
 			   d16(D[15],CLK,Q[15]);
 endmodule 
 
