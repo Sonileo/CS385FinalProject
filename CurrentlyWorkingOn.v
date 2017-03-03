@@ -211,6 +211,25 @@ module fulladder (S,C,x,y,z);
              HA2 (S,D2,S1,z); 
    or g1(C,D2,D1); 
 endmodule 
+
+//Control Signal
+module MainControl (op,control); 
+//Control is in the format of: RegDst,ALUSrc,MemtoReg,RegWrite,MemWrite,Branch,ALUOp
+  input [3:0] op;
+  output reg [7:0] control;
+
+  always @(op) case (op)
+	//R-types
+    4'b0000: control <= 8'b10010010; // add
+    4'b0001: control <= 8'b10010010; // sub
+    4'b0010: control <= 8'b10010010; // and
+    4'b0011: control <= 8'b10010010; // or
+    4'b0111: control <= 8'b10010010; // slt
+	
+	//I-type
+    4'b0100: control <= 8'b01010000; // ADDI
+endcase
+		
 		
 // To test
 module testing ();
