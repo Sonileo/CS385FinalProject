@@ -164,8 +164,11 @@ endmodule
 module mux2x1(A,B,select,OUT);
 	input A,B,select;
 	output OUT;
-	wire x,y;
-	and	g1(x,A,~select),
+	wire x,y, nS;
+	
+	not pS(nS,select);
+	
+	and	g1(x,A,nS),
 		g2(y,B,select);
 	or	g3(OUT,x,y);
 endmodule
@@ -261,7 +264,7 @@ module CPU(clk, AluOut, IR);
 	
 	initial PC = 0;
 
-    assign IR = IMemory[PC>>1];
+    assign IR = Imem[PC>>1];
 
     mux2x1_2bit muxWR (IR[9:8], IR[7:6], RegDst, WR);  
 
