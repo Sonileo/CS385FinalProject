@@ -193,7 +193,26 @@ module ALUmsb (a,b,binvert,op,less,carryin,carryout,result,sum);
    mux4x1 mux2(a_and_b,a_or_b,sum,less,op[1:0],result); 
 endmodule
 
+// Arithmetic 
+module halfadder (S,C,x,y); 
+   input x,y; 
+   output S,C; 
 
+   xor (S,x,y); 
+   and (C,x,y); 
+endmodule 
+
+module fulladder (S,C,x,y,z); 
+   input x,y,z; 
+   output S,C; 
+   wire S1,D1,D2;
+
+   halfadder HA1 (S1,D1,x,y), 
+             HA2 (S,D2,S1,z); 
+   or g1(C,D2,D1); 
+endmodule 
+		
+// To test
 module testing ();
 
  reg [1:0] rr1,rr2,wr;
