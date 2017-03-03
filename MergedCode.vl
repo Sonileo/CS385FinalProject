@@ -18,8 +18,8 @@ module reg_file (rr1,rr2,wr,wd,regwrite,rd1,rd2,clock);
             r3 (wd,c3,q3);
 
 // output port
-   mux4x16 mux1(16'b0,q1,q2,q3,rr1,rd1),
-           mux2(16'b0,q1,q2,q3,rr2,rd2);
+   mux4x1_16bit mux1(16'b0,q1,q2,q3,rr1,rd1),
+                mux2(16'b0,q1,q2,q3,rr2,rd2);
 
 // input port
    decoder dec(wr[1],wr[0],w3,w2,w1,w0);
@@ -31,6 +31,50 @@ module reg_file (rr1,rr2,wr,wd,regwrite,rd1,rd2,clock);
        a3 (c3,regwrite_and_clock,w3);
 
 endmodule
+
+// The register (16-bit D-flip flop)
+module register(D,CLK,Q);
+   input [15:0]D;
+   input CLK;
+   output [15:0]Q;
+   
+   D_flip_flop d1(D[0],CLK,Q[0]),
+			   d2(D[1],CLK,Q[1]),
+			   d3(D[2],CLK,Q[2]),
+			   d4(D[3],CLK,Q[3]),
+			   d5(D[4],CLK,Q[4]),
+			   d6(D[5],CLK,Q[5]),
+			   d7(D[6],CLK,Q[6]),
+			   d8(D[7],CLK,Q[7]),
+			   d9(D[8],CLK,Q[8]),
+			   d10(D[9],CLK,Q[9]),
+			   d11(D[10],CLK,Q[10]),
+			   d12(D[11],CLK,Q[11]),
+			   d13(D[12],CLK,Q[12]),
+			   d14(D[13],CLK,Q[13]),
+			   d15(D[14],CLK,Q[14]),
+			   d16(D[15],CLK,Q[15]);
+endmodule 
+
+module D_flip_flop(D,CLK,Q);
+   input D,CLK; 
+   output Q; 
+   wire CLK1, Y;
+   not  not1 (CLK1,CLK);
+   D_latch D1(D,CLK, Y),
+           D2(Y,CLK1,Q);
+endmodule 
+
+module D_latch(D,C,Q);
+   input D,C; 
+   output Q;
+   wire x,y,D1,Q1; 
+   nand nand1 (x,D, C), 
+        nand2 (y,D1,C), 
+        nand3 (Q,x,Q1),
+        nand4 (Q1,y,Q); 
+   not  not1  (D1,D);
+endmodule 
 
 // 16-bit ALU
 module ALU (op,a,b,result,zero);
@@ -99,6 +143,29 @@ module ALUmsb (a,b,binvert,op,less,carryin,carryout,result,sum);
 
 endmodule
 
+module check_zero(zero,result);
+  input [15:0] result;
+  wire z[14:0];
+  output zero;
+
+  or g5(z[0],result[0],result[1]);
+  or g6(z[1],result[2],result[3]);
+  or g7(z[2],result[4],result[5]);
+  or g8(z[3],result[6],result[7]);
+  or g9(z[4],result[8],result[9]);
+  or g1(z[5],result[10],result[11]);
+  or g2(z[6],result[12],result[13]);
+  or g3(z[7],result[14],result[15]);
+  or g4(z[8],z[0],z[1]);
+  or g10(z[9],z[2],z[3]);
+  or g11(z[10],z[4],z[5]);
+  or g12(z[11],z[6],z[7]);
+  or g13(z[12],z[8],z[9]);
+  or g14(z[13],z[10],z[11]);
+  or g15(z[14],z[12],z[13]);
+  xnor g8(zero,z[14],0);
+endmodule
+
 // Arithmetic
 module halfadder (S,C,x,y); 
    input x,y; 
@@ -143,22 +210,22 @@ module mux4x1_16bit(i0,i1,i2,i3,select,y);
   input [1:0] select;
   output [15:0] y;
 
-  mux4x1 m1(i0[0], i1[0], i2[0], i3[0], select,y[0]),
-		 m2(i0[1], i1[1], i2[1], i3[1], select,y[1]),
-		 m3(i0[2], i1[2], i2[2], i3[2], select,y[2]),
-		 m4(i0[3], i1[3], i2[3], i3[3], select,y[3]),
-		 m5(i0[4], i1[4], i2[4], i3[4], select,y[4]),
-		 m6(i0[5], i1[5], i2[5], i3[5], select,y[5]),
-		 m7(i0[6], i1[6], i2[6], i3[6], select,y[6]),
-		 m8(i0[7], i1[7], i2[7], i3[7], select,y[7]),
-		 m9(i0[8], i1[8], i2[8], i3[8], select,y[8]),
-		 m10(i0[9], i1[9], i2[9], i3[9], select,y[9]),
-		 m11(i0[10],i1[10],i2[10],i3[10],select,y[10],
-		 m12(i0[11],i1[11],i2[11],i3[11],select,y[11]),
-		 m13(i0[12],i1[12],i2[12],i3[12],select,y[12]),
-		 m14(i0[13],i1[13],i2[13],i3[13],select,y[13]),
-		 m15(i0[14],i1[14],i2[14],i3[14],select,y[14]),
-		 m16(i0[15],i1[15],i2[15],i3[15],select,y[15]);
+	mux4x1 m1(i0[0], i1[0], i2[0], i3[0], select,y[0]);
+	mux4x1 m2(i0[1], i1[1], i2[1], i3[1], select,y[1]);
+	mux4x1 m3(i0[2], i1[2], i2[2], i3[2], select,y[2]);
+	mux4x1 m4(i0[3], i1[3], i2[3], i3[3], select,y[3]);
+	mux4x1 m5(i0[4], i1[4], i2[4], i3[4], select,y[4]);
+	mux4x1 m6(i0[5], i1[5], i2[5], i3[5], select,y[5]);
+	mux4x1 m7(i0[6], i1[6], i2[6], i3[6], select,y[6]);
+	mux4x1 m8(i0[7], i1[7], i2[7], i3[7], select,y[7]);
+	mux4x1 m9(i0[8], i1[8], i2[8], i3[8], select,y[8]);
+	mux4x1 m10(i0[9], i1[9], i2[9], i3[9], select,y[9]);
+	mux4x1 m11(i0[10],i1[10],i2[10],i3[10], select,y[10]);
+	mux4x1 m12(i0[11],i1[11],i2[11],i3[11],select,y[11]);
+	mux4x1 m13(i0[12],i1[12],i2[12],i3[12],select,y[12]);
+	mux4x1 m14(i0[13],i1[13],i2[13],i3[13],select,y[13]);
+	mux4x1 m15(i0[14],i1[14],i2[14],i3[14],select,y[14]);
+	mux4x1 m16(i0[15],i1[15],i2[15],i3[15],select,y[15]);
 endmodule
 
 module mux2x1(A,B,select,OUT);
@@ -236,10 +303,12 @@ module MainControl (op,control);
 	
 	//I-type
     4'b0100: control <= 8'b01010000; // ADDI
-	4'b0101: Control <= 8'b01110000; // LW  (Not used in this report)
-    4'b0110: Control <= 8'b01001000; // SW  (Not used in this report)
-    4'b1000: Control <= 8'b00000101; // BEQ (Not used in this report)
-endcase
+	4'b0101: control <= 8'b01110000; // LW  (Not used in this report)
+    4'b0110: control <= 8'b01001000; // SW  (Not used in this report)
+    4'b1000: control <= 8'b00000101; // BEQ (Not used in this report)
+	endcase
+endmodule
+
 
 module CPU(clk, AluOut, IR);
 	input clk;
