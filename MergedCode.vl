@@ -11,6 +11,7 @@ module reg_file (rr1,rr2,wr,wd,regwrite,rd1,rd2,clock);
    input [15:0] wd;
    input regwrite,clock;
    output [15:0] rd1,rd2;
+   wire [15:0] q1, q2, q3;
 
 // registers
    register r1 (wd,c1,q1),
@@ -228,50 +229,49 @@ module mux4x1_16bit(i0,i1,i2,i3,select,y);
 	mux4x1 m16(i0[15],i1[15],i2[15],i3[15],select,y[15]);
 endmodule
 
-module mux2x1(A,B,select,OUT);
+module mux2x1(A,B,select,O);
 	input A,B,select;
-	output OUT;
+	output O;
 	wire x,y, nS;
 	
 	not pS(nS,select);
 	
 	and	g1(x,A,nS),
 		g2(y,B,select);
-	or	g3(OUT,x,y);
+	or	g3(O,x,y);
 endmodule
 
-module mux2x1_2bit(A,B,select,OUT);
+module mux2x1_2bit(A,B,select,y);
 	input [1:0] A,B;
     input select;
-	output [1:0] OUT;
+	output [1:0] y;
 
-    mux2x1 mux1(A[0], B[0], select, OUT[0]),
-           mux2(A[1], B[1], select, OUT[1]);
+    mux2x1 mux1(A[0], B[0], select, y[0]),
+           mux2(A[1], B[1], select, y[1]);
 endmodule
 
-module mux2x1_16bit(A, B, select, OUT);
+module mux2x1_16bit(A, B, select, y);
 	input [15:0] A,B;
     input select;
-	output [15:0] OUT;
+	output [15:0] y;
 
-    mux2x1 mux1(A[0], B[0], select, OUT[0]),
-           mux2(A[1], B[1], select, OUT[1]),
-           mux3(A[2], B[2], select, OUT[2]),
-           mux4(A[3], B[3], select, OUT[3]),
-           mux5(A[4], B[4], select, OUT[4]),
-           mux6(A[5], B[5], select, OUT[5]),
-           mux7(A[6], B[6], select, OUT[6]),
-           mux8(A[7], B[7], select, OUT[7]),
-           mux9(A[8], B[8], select, OUT[8]),
-           mux10(A[9], B[9], select, OUT[9]),
-           mux11(A[10], B[10], select, OUT[10]),
-           mux12(A[11], B[11], select, OUT[11]),
-           mux13(A[12], B[12], select, OUT[12]),
-           mux14(A[13], B[13], select, OUT[13]),
-           mux15(A[14], B[14], select, OUT[14]),
-           mux16(A[15], B[15], select, OUT[15]);
+    mux2x1 mux1(A[0], B[0], select, y[0]),
+           mux2(A[1], B[1], select, y[1]),
+           mux3(A[2], B[2], select, y[2]),
+           mux4(A[3], B[3], select, y[3]),
+           mux5(A[4], B[4], select, y[4]),
+           mux6(A[5], B[5], select, y[5]),
+           mux7(A[6], B[6], select, y[6]),
+           mux8(A[7], B[7], select, y[7]),
+           mux9(A[8], B[8], select, y[8]),
+           mux10(A[9], B[9], select, y[9]),
+           mux11(A[10], B[10], select, y[10]),
+           mux12(A[11], B[11], select, y[11]),
+           mux13(A[12], B[12], select, y[12]),
+           mux14(A[13], B[13], select, y[13]),
+           mux15(A[14], B[14], select, y[14]),
+           mux16(A[15], B[15], select, y[15]);
 endmodule
-
 
 
 module decoder (S1,S0,D3,D2,D1,D0); 
@@ -289,24 +289,21 @@ endmodule
 
 //Control Signal
 module MainControl (op,control); 
-//Control is in the format of: RegDst,ALUSrc,MemtoReg,RegWrite,MemWrite,Branch,ALUOp
-  input [3:0] op;
-  output reg [7:0] control;
+  input [2:0] op;
+  output reg [5:0] control;
 
+  //Control is in the format of: RegDst, AluSrc, RegWrite, AluCtrl
   always @(op) case (op)
 	//R-types
-    4'b0000: control <= 8'b10010010; // add
-    4'b0001: control <= 8'b10010010; // sub
-    4'b0010: control <= 8'b10010010; // and
-    4'b0011: control <= 8'b10010010; // or
-    4'b0111: control <= 8'b10010010; // slt
+    3'b000: control <= 6'b101010; // add
+    3'b001: control <= 6'b101110; // sub
+    3'b010: control <= 6'b101000; // and
+    3'b011: control <= 6'b101001; // or
+    3'b111: control <= 6'b101111; // slt
 	
 	//I-type
-    4'b0100: control <= 8'b01010000; // ADDI
-	4'b0101: control <= 8'b01110000; // LW  (Not used in this report)
-    4'b0110: control <= 8'b01001000; // SW  (Not used in this report)
-    4'b1000: control <= 8'b00000101; // BEQ (Not used in this report)
-	endcase
+    3'b100: control <= 6'b011010; // ADDI
+  endcase
 endmodule
 
 
@@ -360,7 +357,7 @@ endmodule
 // To test
 module testing ();
 
- reg clock;
+  reg clock;
   wire [15:0] WD,IR;
 
   CPU test_cpu(clock,WD,IR);
@@ -369,7 +366,7 @@ module testing ();
   
   initial begin
     $display ("time clock IR       WD");
-    $monitor ("%2d   %b     %h %h", $time,clock,IR,WD);
+    $monitor ("%2d   %b     %h     %h", $time,clock,IR,WD);
     clock = 1;
     #12 $finish;
   end
@@ -379,36 +376,6 @@ endmodule
 
 /* Test results
 
-C:\Verilog>iverilog -o t regfile.vl
-
-C:\Verilog>vvp t
-regwrite=x clock=x rr1=x rr2=x wr=x wd=x rd1=x rd2=x
-regwrite=1 clock=x rr1=x rr2=x wr=x wd=x rd1=x rd2=x
-regwrite=1 clock=x rr1=x rr2=x wr=x wd=0 rd1=x rd2=x
-regwrite=1 clock=0 rr1=0 rr2=0 wr=x wd=0 rd1=0 rd2=0
-regwrite=1 clock=1 rr1=1 rr2=1 wr=1 wd=0 rd1=x rd2=x
-regwrite=1 clock=0 rr1=1 rr2=1 wr=1 wd=0 rd1=0 rd2=0
-regwrite=1 clock=1 rr1=2 rr2=2 wr=2 wd=0 rd1=x rd2=x
-regwrite=1 clock=0 rr1=2 rr2=2 wr=2 wd=0 rd1=0 rd2=0
-regwrite=1 clock=1 rr1=3 rr2=3 wr=3 wd=0 rd1=x rd2=x
-regwrite=1 clock=0 rr1=3 rr2=3 wr=3 wd=0 rd1=0 rd2=0
-regwrite=0 clock=0 rr1=3 rr2=3 wr=3 wd=0 rd1=0 rd2=0
-regwrite=0 clock=0 rr1=3 rr2=3 wr=3 wd=1 rd1=0 rd2=0
-regwrite=0 clock=1 rr1=1 rr2=1 wr=1 wd=1 rd1=0 rd2=0
-regwrite=0 clock=0 rr1=1 rr2=1 wr=1 wd=1 rd1=0 rd2=0
-regwrite=0 clock=1 rr1=2 rr2=2 wr=2 wd=1 rd1=0 rd2=0
-regwrite=0 clock=0 rr1=2 rr2=2 wr=2 wd=1 rd1=0 rd2=0
-regwrite=0 clock=1 rr1=3 rr2=3 wr=3 wd=1 rd1=0 rd2=0
-regwrite=0 clock=0 rr1=3 rr2=3 wr=3 wd=1 rd1=0 rd2=0
-regwrite=1 clock=0 rr1=3 rr2=3 wr=3 wd=1 rd1=0 rd2=0
-regwrite=1 clock=1 rr1=1 rr2=1 wr=1 wd=1 rd1=0 rd2=0
-regwrite=1 clock=0 rr1=1 rr2=1 wr=1 wd=1 rd1=1 rd2=1
-regwrite=1 clock=1 rr1=2 rr2=2 wr=2 wd=1 rd1=0 rd2=0
-regwrite=1 clock=0 rr1=2 rr2=2 wr=2 wd=1 rd1=1 rd2=1
-regwrite=1 clock=1 rr1=3 rr2=3 wr=3 wd=1 rd1=0 rd2=0
-regwrite=1 clock=0 rr1=3 rr2=3 wr=3 wd=1 rd1=1 rd2=1
-
-*/
 
 
 
