@@ -363,7 +363,7 @@ module testing ();
     $display ("time clock IR       WD");
     $monitor ("%2d   %b     %h     %h", $time,clock,IR,WD);
     clock = 1;
-    #12 $finish;
+    #14 $finish;
   end
 
 endmodule
@@ -371,6 +371,23 @@ endmodule
 
 /* Test results
 
+time clock IR WD
+0 1 410f 000f
+1 0 4207 0007
+2 1 4207 0007
+3 0 06c0 0007
+4 1 06c0 0007
+5 0 6780 0008
+6 1 6780 0008
+7 0 1b80 000f
+8 1 1b80 000f
+9 0 2bc0 0016
+10 1 2bc0 0016
+11 0 7e40 0000
+12 1 7e40 0000
+13 0 7b40 0001
+14 1 7b40 0001
 
+*/
 
 
