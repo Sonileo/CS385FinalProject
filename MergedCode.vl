@@ -188,22 +188,18 @@ module fulladder (S,C,x,y,z);
 endmodule 
 
 // Multiplexers
-module mux4x1(i0,i1,i2,i3,select,y); 
-   input i0,i1,i2,i3; 
-   input [1:0] select; 
-   output y;
-   wire a,b,c,d;
-   wire [1:0] nS;
-   
-   not	pS0(nS[0], select[0]),
-		pS1(nS[1], select[1]); 
-   
-   and 		a0(a,i0,nS[1],nS[0]),
-			a1(b,i1, select[1],nS[0]),
-			a2(c,i2, select[1],nS[0]),
-			a3(d,i3, select[1], select[0]);
-			
-	or		o0(y,a,b,c,d);
+module mux4x1(a_and_b,a_or_b,sum,less,op[1:0],result); 
+   input a_and_b,a_or_b,sum,less;
+   input [1:0] op;
+   wire a,b,c,d,notOp0,notOp1;
+   output result;
+   not g1(notOp0,op[0]); // S0
+   not g2(notOp1,op[1]); // S1
+   and g3(a,a_and_b,notOp1,notOp0), // AND operation - 00
+       g4(b,a_or_b,notOp1,op[0]),   // OR operation - 01
+       g5(c,sum,op[1],notOp0),  // ADD operation - 10
+       g6(d,less,op[1],op[0]);     // SLT operation - 11
+   or  g7(result,a,b,c,d);
 endmodule
 
 module mux4x1_16bit(i0,i1,i2,i3,select,y);
@@ -229,16 +225,15 @@ module mux4x1_16bit(i0,i1,i2,i3,select,y);
 	mux4x1 m16(i0[15],i1[15],i2[15],i3[15],select,y[15]);
 endmodule
 
-module mux2x1(A,B,select,O);
-	input A,B,select;
-	output O;
-	wire x,y, nS;
-	
-	not pS(nS,select);
-	
-	and	g1(x,A,nS),
-		g2(y,B,select);
-	or	g3(O,x,y);
+module mux2x1(A,B,select,OUT); 
+   input A,B,select; 
+   output OUT;
+   wire notS,andA,andB;
+
+   not g1(notS,select);
+   and g2(andA,A,notS),
+       g3(andB,B,select);
+   or  g4(OUT,andA,andB); 
 endmodule
 
 module mux2x1_2bit(A,B,select,y);
