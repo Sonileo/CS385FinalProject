@@ -5,7 +5,8 @@
 						(r-type and addi)
 */
 
-/*	16-bit register file with input of read register 1(rr1),
+/*
+	16-bit register file with input of read register 1(rr1),
 	read register 2 (rr2), write register (wr), write data (wd),
 	regwrite, and clock. The outputs are read data 1 (rd1),
 	and read data 2 (rd2). The register file relies on registers, 
@@ -18,16 +19,16 @@ module reg_file (rr1,rr2,wr,wd,regwrite,rd1,rd2,clock);
    output [15:0] rd1,rd2;
    wire [15:0] q1, q2, q3;
 
-// registers
+	//registers
    register r1 (wd,c1,q1),
 		    r2 (wd,c2,q2),
             r3 (wd,c3,q3);
 
-// output port
+	//output port
    mux4x1_16bit mux1 (16'b0,q1,q2,q3,rr1,rd1),
                 mux2 (16'b0,q1,q2,q3,rr2,rd2);
 
-// input port
+	//input port
    decoder dec (wr[1],wr[0],w3,w2,w1,w0);
 
    and a (regwrite_and_clock,regwrite,clock);
@@ -38,8 +39,7 @@ module reg_file (rr1,rr2,wr,wd,regwrite,rd1,rd2,clock);
 	   
 endmodule
 
-/* 	The register module is implemented using 16 D-flip-flops.
-*/
+// 	The register module is implemented using 16 D-flip-flops.
 module register(D,CLK,Q);
    input [15:0]D;
    input CLK;
@@ -64,8 +64,7 @@ module register(D,CLK,Q);
 			   
 endmodule 
 
-/*	The D-flip-flop module implemented using d-latches.
-*/
+//	The D-flip-flop module implemented using d-latches.
 module D_flip_flop (D,CLK,Q);
    input D,CLK; 
    output Q; 
@@ -77,8 +76,7 @@ module D_flip_flop (D,CLK,Q);
 		   
 endmodule 
 
-/*	The d-latch module.
-*/
+//	The d-latch module.
 module D_latch (D,C,Q);
    input D,C; 
    output Q;
@@ -92,7 +90,8 @@ module D_latch (D,C,Q);
    
 endmodule 
 
-/*	The 16-bit ALU which takes an operation (op) input as well as 
+/*	
+	The 16-bit ALU which takes an operation (op) input as well as 
 	an 'a' and 'b' input. What is returned is reult which is sent 
 	to the write data (wd) of the register file, and zero.
 */
@@ -127,7 +126,8 @@ module ALU (op,a,b,result,zero);
 endmodule
 
 
-/*	1-bit ALU used to handle bits 0-14 (least significant bits) using a 
+/*	
+	1-bit ALU used to handle bits 0-14 (least significant bits) using a 
 	2x1 and 4x1 multiplexor as well as a full adder. 
 */
 module ALU1 (a,b,binvert,op,less,carryin,carryout,result);
@@ -146,7 +146,8 @@ module ALU1 (a,b,binvert,op,less,carryin,carryout,result);
 endmodule
 
 
-/* 	1-bit ALU used to handle bit 15 (the most significant bit)
+/* 	
+	1-bit ALU used to handle bit 15 (the most significant bit)
 	using a 2x1 and 4x1 multiplexor as well as a full adder.
 */
 module ALUmsb (a,b,binvert,op,less,carryin,carryout,result,sum);
@@ -169,8 +170,7 @@ module ALUmsb (a,b,binvert,op,less,carryin,carryout,result,sum);
 
 endmodule
 
-/*	module to check zero returned by the ALU 
-*/
+//	Module to check zero returned by the ALU 
 module check_zero (zero,result);
   input [15:0] result;
   wire z[14:0];
@@ -196,8 +196,7 @@ module check_zero (zero,result);
   
 endmodule
 
-/*	Half adder module used twice in the implementation of the full adder.
-*/
+//	Half adder module used twice in the implementation of the full adder.
 module halfadder (S,C,x,y); 
    input x,y; 
    output S,C; 
@@ -207,8 +206,7 @@ module halfadder (S,C,x,y);
    
 endmodule 
 
-/*	full adder module using two half adders.
-*/
+//	Full adder module using two half adders.
 module fulladder (S,C,x,y,z); 
    input x,y,z; 
    output S,C; 
@@ -220,8 +218,7 @@ module fulladder (S,C,x,y,z);
    
 endmodule 
 
-/*	4x1 multiplexor module.
-*/
+//	4x1 multiplexor module.
 module mux4x1 (a_and_b, a_or_b,sum, less, op[1:0], result); 
    input a_and_b,a_or_b,sum,less;
    input [1:0] op;
@@ -237,8 +234,7 @@ module mux4x1 (a_and_b, a_or_b,sum, less, op[1:0], result);
    
 endmodule
 
-/*	16-bit 4x1 multiplexor module.
-*/
+//	16-bit 4x1 multiplexor module.
 module mux4x1_16bit (i0,i1,i2,i3,select,y);
   input [15:0] i0,i1,i2,i3;
   input [1:0] select;
@@ -263,8 +259,7 @@ module mux4x1_16bit (i0,i1,i2,i3,select,y);
 	
 endmodule
 
-/*	2x1 multiplexor module.
-*/
+// 2x1 multiplexor module.
 module mux2x1 (A,B,select,OUT); 
    input A,B,select; 
    output OUT;
@@ -277,8 +272,7 @@ module mux2x1 (A,B,select,OUT);
    
 endmodule
 
-/*	2-bit 2x1 multiplexor module.	
-*/
+//	2-bit 2x1 multiplexor module.	
 module mux2x1_2bit (A,B,select,y);
 	input [1:0] A,B;
     input select;
@@ -289,8 +283,7 @@ module mux2x1_2bit (A,B,select,y);
 		   
 endmodule
 
-/*	16-bit 2x1 multiplexor module.
-*/
+//	16-bit 2x1 multiplexor module.
 module mux2x1_16bit (A, B, select, y);
 	input [15:0] A,B;
     input select;
@@ -315,8 +308,7 @@ module mux2x1_16bit (A, B, select, y);
 		   
 endmodule
 
-/*	Decoder module.
-*/
+//	Decoder module.
 module decoder (S1,S0,D3,D2,D1,D0); 
    input S0,S1; 
    output D0,D1,D2,D3; 
@@ -331,8 +323,7 @@ module decoder (S1,S0,D3,D2,D1,D0);
 	   
 endmodule 
 
-/*	Main Control Unit module.
-*/
+//	Main Control Unit module.
 module MainControl (op,control); 
   input [2:0] op;
   output reg [5:0] control;
@@ -352,7 +343,8 @@ module MainControl (op,control);
   
 endmodule
 
-/*	CPU module which implements the other major components (ALU, Register,
+/*
+	CPU module which implements the other major components (ALU, Register,
 	and control unit).
 */
 module CPU (clk, AluOut, IR);
@@ -402,8 +394,7 @@ module CPU (clk, AluOut, IR);
 endmodule
 
 
-/*	Test module using the CPU.
-*/
+//	Test module using the CPU.
 module testing ();
 
   reg clock;
