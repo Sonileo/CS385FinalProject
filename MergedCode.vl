@@ -4,7 +4,7 @@
 	Progress Report 1 - Implementing a 16-bit MIPS machine in Verilog
 						(r-type and addi)
 */
-
+ 
 /*
 	16-bit register file with input of read register 1(rr1),
 	read register 2 (rr2), write register (wr), write data (wd),
