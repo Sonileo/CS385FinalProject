@@ -290,10 +290,10 @@ module MainControl (op,control);
   //Control is in the format of: RegDst, AluSrc, RegWrite, AluCtrl
   always @(op) case (op)
 	//R-types
-    3'b000: control <= 6'b101010; // add
-    3'b001: control <= 6'b101110; // sub
-    3'b010: control <= 6'b101000; // and
-    3'b011: control <= 6'b101001; // or
+    3'b010: control <= 6'b101010; // add
+    3'b110: control <= 6'b101110; // sub
+    3'b000: control <= 6'b101000; // and
+    3'b001: control <= 6'b101001; // or
     3'b111: control <= 6'b101111; // slt
 	
 	//I-type
