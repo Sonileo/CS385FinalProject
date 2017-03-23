@@ -323,25 +323,43 @@ module decoder (S1,S0,D3,D2,D1,D0);
 	   
 endmodule 
 
+//####################
+module BranchCtrl(Op, Zero, Out);
+	input [1:0] Op;
+	input Zero;
+	output Out;
+	wire pZero, i0,i1; 
+	
+	not n(pZero, Zero);
+	and a1(i0, Op[0], Zero),
+		a2(i1, Op[1], pZero);
+	or o(Out,i0,i1);
+endmodule
+
 //	Main Control Unit module.
 module MainControl (op,control); 
-  input [2:0] op;
-  output reg [5:0] control;
+  input [3:0] op;
+  output reg [9:0] control;
 
-  //Control is in the format of: RegDst, AluSrc, RegWrite, AluCtrl
+  //Control is in the format of: RegDst, AluSrc, MemtoReg, RegWrite, MemWrite, Branch, AluCtrl
   always @(op) case (op)
 	//R-types
-    3'b010: control <= 6'b101010; // add
-    3'b110: control <= 6'b101110; // sub
-    3'b000: control <= 6'b101000; // and
-    3'b001: control <= 6'b101001; // or
-    3'b111: control <= 6'b101111; // slt
+    4'b0000: Control <= 10'b1001000010; // ADD
+    4'b0001: Control <= 10'b1001000110; // SUB
+    4'b0010: Control <= 10'b1001000000; // AND
+    4'b0011: Control <= 10'b1001000001; // OR
+    4'b0111: Control <= 10'b1001000111; // SLT
 	
 	//I-type
-    3'b100: control <= 6'b011010; // addi
+    4'b0100: Control <= 10'b0101000010; // ADDI
+	4'b0101: Control <= 10'b0111000010; // LW  (added for report 2)
+    4'b0110: Control <= 10'b0100100010; // SW  (added for report 2)
+    4'b1000: Control <= 10'b0000001110; // BEQ (added for report 2)
+    4'b1001: Control <= 10'b0000010110; // BNE (added for report 2)
   endcase
   
 endmodule
+
 
 /*
 	CPU module which implements the other major components (ALU, Register,
@@ -351,7 +369,7 @@ module CPU (clk, AluOut, IR);
 	input clk;
 	output [15:0] AluOut, IR;
 	reg[15:0] PC;
-	reg[15:0] Imem[0:511];    
+	reg[15:0] Imem[0:511], DMem[0:1023];    
 	wire [15:0] IR, NextPC, A, B, AluOut, RD2, SignExtend;
     wire [2:0] AluCtrl;
     wire [1:0] WR;
@@ -366,6 +384,10 @@ module CPU (clk, AluOut, IR);
 		Imem[5] = 16'b0010101111000000;  // add  $t3, $t2, $t3   # $t3=22
 		Imem[6] = 16'b0111111001000000;  // slt  $t1, $t3, $t2   # $t1= 0
 		Imem[7] = 16'b0111101101000000;  // slt  $t1, $t2, $t3   # $t1= 1
+	
+		// Data
+		DMemory [0] = 16'h5; 
+		DMemory [1] = 16'h7;
 	end
 	
 	initial PC = 0;
@@ -383,12 +405,19 @@ module CPU (clk, AluOut, IR);
     ALU fetch (3'b010, PC, 16'b10, NextPC, Unused);
 
     ALU exec (AluCtrl, A, B, AluOut, Zero);
-
-    MainControl main (IR[14:12], {RegDst, AluSrc, RegWrite, AluCtrl});
+	
+	//####### Made changes for report 2 #######
+    MainControl main (IR[15:12], {RegDst, AluSrc, MemtoReg, RegWrite, MemWrite, Branch, AluCtrl});
+	
+	//#### Added for r2 ####
+	mux2x1_16bit MemToReg (AluOut, DMemory[AluOut>>1], MemtoReg, WD); 
+	BranchCtrl BranchControl (Branch, Zero, BCtrlOut)
+	mux2x1_16bit muxBranch (PCplus2, Target, BCtrlOut, NextPC);
 
 	// Program counter
     always @(negedge clk) begin
         PC <= NextPC;
+		if (MemWrite) DMemory[AluOut>>1] <= RD2;	//#### Added for r2  #####
     end
 	
 endmodule
