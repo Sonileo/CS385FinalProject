@@ -344,18 +344,18 @@ module MainControl (op,control);
   //Control is in the format of: RegDst, AluSrc, MemtoReg, RegWrite, MemWrite, Branch, AluCtrl
   always @(op) case (op)
 	//R-types
-    4'b0000: Control <= 10'b1001000010; // ADD
-    4'b0001: Control <= 10'b1001000110; // SUB
-    4'b0010: Control <= 10'b1001000000; // AND
-    4'b0011: Control <= 10'b1001000001; // OR
-    4'b0111: Control <= 10'b1001000111; // SLT
+    4'b0000: control <= 10'b1001000010; // ADD
+    4'b0001: control <= 10'b1001000110; // SUB
+    4'b0010: control <= 10'b1001000000; // AND
+    4'b0011: control <= 10'b1001000001; // OR
+    4'b0111: control <= 10'b1001000111; // SLT
 	
 	//I-type
-    4'b0100: Control <= 10'b0101000010; // ADDI
-	4'b0101: Control <= 10'b0111000010; // LW  (added for report 2)
-    4'b0110: Control <= 10'b0100100010; // SW  (added for report 2)
-    4'b1000: Control <= 10'b0000001110; // BEQ (added for report 2)
-    4'b1001: Control <= 10'b0000010110; // BNE (added for report 2)
+    4'b0100: control <= 10'b0101000010; // ADDI
+	4'b0101: control <= 10'b0111000010; // LW  (added for report 2)
+    4'b0110: control <= 10'b0100100010; // SW  (added for report 2)
+    4'b1000: control <= 10'b0000001110; // BEQ (added for report 2)
+    4'b1001: control <= 10'b0000010110; // BNE (added for report 2)
   endcase
   
 endmodule
@@ -365,29 +365,34 @@ endmodule
 	CPU module which implements the other major components (ALU, Register,
 	and control unit).
 */
-module CPU (clk, AluOut, IR);
+module CPU (clk, WD, IR);
 	input clk;
-	output [15:0] AluOut, IR;
+	output [15:0] AluOut, IR, WD;
 	reg[15:0] PC;
-	reg[15:0] Imem[0:511], DMem[0:1023];    
-	wire [15:0] IR, NextPC, A, B, AluOut, RD2, SignExtend;
+	reg[15:0] Imem[0:1023], DMemory[0:1023];    
+	wire [15:0] IR, NextPC, A, B, AluOut, RD2, SignExtend, PC2, Target;
     wire [2:0] AluCtrl;
-    wire [1:0] WR;
+    wire [1:0] WR, Branch;
 	
 	//To test
 	initial begin
-		Imem[0] = 16'b0100000100001111;  // addi $t1, $0,  15    # $t1=15
-		Imem[1] = 16'b0100001000000111;  // addi $t2, $0,  7     # $t2= 7 
-		Imem[2] = 16'b0000011011000000;  // and  $t3, $t1, $t2	 # $t3= 7
-		Imem[3] = 16'b0110011110000000;  // sub  $t2, $t1, $t3   # $t2= 8
-		Imem[4] = 16'b0001101110000000;  // or   $t2, $t2, $t3   # $t2=15 
-		Imem[5] = 16'b0010101111000000;  // add  $t3, $t2, $t3   # $t3=22
-		Imem[6] = 16'b0111111001000000;  // slt  $t1, $t3, $t2   # $t1= 0
-		Imem[7] = 16'b0111101101000000;  // slt  $t1, $t2, $t3   # $t1= 1
+		//r-type = op(4),rs(2), rt(2), rd(2), unused(6)
+		//i-type = op(4), rs(2), rt(2), address/value(8)
+		
+		//#### not finished. missing add and bne
+		Imem[0] = 16'b0101000100000000;  // lw $1, 0($0)        
+		Imem[1] = 16'b0101001000000010;  // lw $2, 2($0)         
+		Imem[2] = 16'b0111011011000000;  // slt $3, $1, $2 
+		Imem[3] = 16'b1000110000000100;  // beq $3, $0, 4 
+		Imem[4] = 16'b0110000100000010;  // sw $1, 2($0)      
+		Imem[5] = 16'b0110001000000000;  // sw $2, 0($0)        
+		Imem[6] = 16'b0101000100000000;  // lw $1, 0($0)     
+		Imem[7] = 16'b0101001000000010;  // lw $2, 2($0)     
+		Imem[8] = 16'b0001011001000000;  // sub $1, $1, $2   
 	
 		// Data
-		DMemory [0] = 16'h5; 
-		DMemory [1] = 16'h7;
+		DMemory[0] = 16'h5; 
+		DMemory[1] = 16'h7;
 	end
 	
 	initial PC = 0;
@@ -402,17 +407,20 @@ module CPU (clk, AluOut, IR);
 
     reg_file rf (IR[11:10], IR[9:8], WR, AluOut, RegWrite, A, RD2, clk);
 
-    ALU fetch (3'b010, PC, 16'b10, NextPC, Unused);
+    ALU fetch (3'b010, PC, 16'b10, PC2, Unused);
 
     ALU exec (AluCtrl, A, B, AluOut, Zero);
+	
+	//#### Added for branching for r2 ####
+	ALU branch (3'b010, SignExtend<<1, PC2, Target, Unused);
 	
 	//####### Made changes for report 2 #######
     MainControl main (IR[15:12], {RegDst, AluSrc, MemtoReg, RegWrite, MemWrite, Branch, AluCtrl});
 	
 	//#### Added for r2 ####
 	mux2x1_16bit MemToReg (AluOut, DMemory[AluOut>>1], MemtoReg, WD); 
-	BranchCtrl BranchControl (Branch, Zero, BCtrlOut)
-	mux2x1_16bit muxBranch (PCplus2, Target, BCtrlOut, NextPC);
+	BranchCtrl BranchControl (Branch, Zero, BCtrlOut);
+	mux2x1_16bit muxBranch (PC2, Target, BCtrlOut, NextPC);
 
 	// Program counter
     always @(negedge clk) begin
@@ -446,20 +454,20 @@ endmodule
 
 /* Test results
 Time Clock IR 	WD
-0 	 1 	   410f	000f
-1 	 0 	   4207 0007
-2 	 1     4207 0007
-3 	 0     06c0 0007
-4 	 1     06c0 0007
-5 	 0     6780 0008
-6 	 1     6780 0008
-7 	 0     1b80 000f
-8 	 1     1b80 000f
-9 	 0     2bc0 0016
-10 	 1     2bc0 0016
-11 	 0     7e40 0000
-12 	 1     7e40 0000
-13 	 0     7b40 0001
-14 	 1     7b40 0001
+0 	 1 	   
+1 	 0 	   
+2 	 1     
+3 	 0    
+4 	 1     
+5 	 0     
+6 	 1    
+7 	 0     
+8 	 1    
+9 	 0     
+10 	 1     
+11 	 0     
+12 	 1     
+13 	 0     
+14 	 1     
 
 */
