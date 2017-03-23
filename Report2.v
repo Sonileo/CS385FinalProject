@@ -352,7 +352,7 @@ module MainControl (op,control);
 	
 	//I-type
     4'b0100: control <= 10'b0101000010; // ADDI
-	4'b0101: control <= 10'b0111000010; // LW  (added for report 2)
+	  4'b0101: control <= 10'b0111000010; // LW  (added for report 2)
     4'b0110: control <= 10'b0100100010; // SW  (added for report 2)
     4'b1000: control <= 10'b0000001110; // BEQ (added for report 2)
     4'b1001: control <= 10'b0000010110; // BNE (added for report 2)
@@ -383,7 +383,7 @@ module CPU (clk, WD, IR);
 		Imem[0] = 16'b0101000100000000;  // lw $1, 0($0)        
 		Imem[1] = 16'b0101001000000010;  // lw $2, 2($0)         
 		Imem[2] = 16'b0111011011000000;  // slt $3, $1, $2 
-		Imem[3] = 16'b1000110000000100;  // beq $3, $0, 4 
+		Imem[3] = 16'b1000110000000100;  // beq $3, $0, 4
 		Imem[4] = 16'b0110000100000010;  // sw $1, 2($0)      
 		Imem[5] = 16'b0110001000000000;  // sw $2, 0($0)        
 		Imem[6] = 16'b0101000100000000;  // lw $1, 0($0)     
@@ -446,7 +446,7 @@ module testing ();
     $display ("Time Clock IR       WD");
     $monitor ("%2d   %b     %h     %h", $time,clock,IR,WD);
     clock = 1;
-    #14 $finish;
+    #16 $finish;
   end
 
 endmodule
@@ -472,7 +472,9 @@ Time Clock IR  WD
 11   0    5100 0002
 12   1    5100 0002
 13   0    5202 0000
-14   1    5202 0000   
+14   1    5202 0000
+15   0    1640 fffe
+16   1    1640 fffe   
 
 
 DMemory[0] = 16'h7; 
@@ -494,7 +496,8 @@ Time Clock IR  WD
 12   1    5100 0002
 13   0    5202 0000
 14   1    5202 0000
-
+15   0    1640 fffe
+16   1    1640 fffe
 
 
 */
