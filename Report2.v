@@ -391,8 +391,8 @@ module CPU (clk, WD, IR);
 		Imem[8] = 16'b0001011001000000;  // sub $1, $1, $2   
 	
 		// Data
-		DMemory[0] = 16'h5; 
-		DMemory[1] = 16'h7;
+		DMemory[0] = 16'h7; 
+		DMemory[1] = 16'h5;
 	end
 	
 	initial PC = 0;
@@ -405,7 +405,7 @@ module CPU (clk, WD, IR);
 
     assign SignExtend = {{8{IR[7]}},IR[7:0]};
 
-    reg_file rf (IR[11:10], IR[9:8], WR, AluOut, RegWrite, A, RD2, clk);
+    reg_file rf (IR[11:10], IR[9:8], WR, WD, RegWrite, A, RD2, clk);
 
     ALU fetch (3'b010, PC, 16'b10, PC2, Unused);
 
@@ -484,20 +484,20 @@ Time Clock IR  WD
 0    1    5100 0007
 1    0    5202 0005
 2    1    5202 0005
-3    0    76c0 0001
-4    1    76c0 0001
-5    0    8c04 0001
-6    1    8c04 0001
-7    0    6102 0002
-8    1    6102 0002
-9    0    6200 0000
-10   1    6200 0000
-11   0    5100 0002
-12   1    5100 0002
-13   0    5202 0000
-14   1    5202 0000
-15   0    1640 fffe
-16   1    1640 fffe
+3    0    76c0 0000
+4    1    76c0 0000
+5    0    8c04 0000
+6    1    8c04 0000
+7    0    1640 0002
+8    1    1640 0002
+9    0    xxxx xxxx
+10   1    xxxx xxxx
+11   0    xxxx xxxx
+12   1    xxxx xxxx
+13   0    xxxx xxxx
+14   1    xxxx xxxx
+15   0    xxxx xxxx
+16   1    xxxx xxxx
 
 
 */
