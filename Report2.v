@@ -378,7 +378,6 @@ module CPU (clk, WD, IR);
 		//r-type = op(4),rs(2), rt(2), rd(2), unused(6)
 		//i-type = op(4), rs(2), rt(2), address/value(8)
 		
-		//#### not finished. missing add and bne
 		Imem[0] = 16'b0101000100000000;  // lw $1, 0($0) 		#$1 = DMemory[0]       
 		Imem[1] = 16'b0101001000000010;  // lw $2, 2($0)      	#$2 = DMemory[1]   
 		Imem[2] = 16'b0111011011000000;  // slt $3, $1, $2 		#$3 = 1 if less than 
