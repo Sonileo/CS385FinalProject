@@ -323,7 +323,7 @@ module decoder (S1,S0,D3,D2,D1,D0);
 	   
 endmodule 
 
-//####################
+// #### Branch Control ####
 module BranchCtrl(Op, Zero, Out);
 	input [1:0] Op;
 	input Zero;
@@ -352,7 +352,7 @@ module MainControl (op,control);
 	
 	//I-type
     4'b0100: control <= 10'b0101000010; // ADDI
-	  4'b0101: control <= 10'b0111000010; // LW  (added for report 2)
+	4'b0101: control <= 10'b0111000010; // LW  (added for report 2)
     4'b0110: control <= 10'b0100100010; // SW  (added for report 2)
     4'b1000: control <= 10'b0000001110; // BEQ (added for report 2)
     4'b1001: control <= 10'b0000010110; // BNE (added for report 2)
@@ -380,19 +380,25 @@ module CPU (clk, WD, IR);
 		//i-type = op(4), rs(2), rt(2), address/value(8)
 		
 		//#### not finished. missing add and bne
-		Imem[0] = 16'b0101000100000000;  // lw $1, 0($0)        
-		Imem[1] = 16'b0101001000000010;  // lw $2, 2($0)         
-		Imem[2] = 16'b0111011011000000;  // slt $3, $1, $2 
-		Imem[3] = 16'b1000110000000100;  // beq $3, $0, 4
-		Imem[4] = 16'b0110000100000010;  // sw $1, 2($0)      
-		Imem[5] = 16'b0110001000000000;  // sw $2, 0($0)        
-		Imem[6] = 16'b0101000100000000;  // lw $1, 0($0)     
-		Imem[7] = 16'b0101001000000010;  // lw $2, 2($0)     
-		Imem[8] = 16'b0001011001000000;  // sub $1, $1, $2   
+		Imem[0] = 16'b0101000100000000;  // lw $1, 0($0) 		#$1 = DMemory[0]       
+		Imem[1] = 16'b0101001000000010;  // lw $2, 2($0)      	#$2 = DMemory[1]   
+		Imem[2] = 16'b0111011011000000;  // slt $3, $1, $2 		#$3 = 1 if less than 
+		Imem[3] = 16'b1000110000001000;  // beq $3, $0, 4		#not taken 
+		Imem[4] = 16'b0110000100000010;  // sw $1, 2($0)      	#store $1 into DMemory[1]
+		Imem[5] = 16'b0110001000000000;  // sw $2, 0($0)        #store $2 into DMemory[0]
+		Imem[6] = 16'b0101000100000000;  // lw $1, 0($0)     	#$1 = DMemory[0]
+		Imem[7] = 16'b0101001000000010;  // lw $2, 2($0)     	#$2 = DMemory[1] 
+		Imem[8] = 16'b0001011001000000;  // sub $1, $1, $2 		#$1 = $1 - $2
+		Imem[9] = 16'b0100010100000100;  // addi $1, $1, 4		#$1 = $1 + 4
+		Imem[10]= 16'b1001011011111100;  // bne $1, $2, -5		#taken first loop, not taken second 
+		Imem[11]= 16'b1000011000000010;  // beq $1, $2, 1		#branch over
+		Imem[12]= 16'b0000010101000000;  // add $1, $1, $1 	    #skip	
+
+
 	
 		// Data
-		DMemory[0] = 16'h7; 
-		DMemory[1] = 16'h5;
+		DMemory[0] = 16'h5; 
+		DMemory[1] = 16'h7;
 	end
 	
 	initial PC = 0;
@@ -415,10 +421,10 @@ module CPU (clk, WD, IR);
 	ALU branch (3'b010, SignExtend<<1, PC2, Target, Unused);
 	
 	//####### Made changes for report 2 #######
-    MainControl main (IR[15:12], {RegDst, AluSrc, MemtoReg, RegWrite, MemWrite, Branch, AluCtrl});
+    MainControl main (IR[15:12], {RegDst, AluSrc, MemReg, RegWrite, MemWrite, Branch, AluCtrl});
 	
 	//#### Added for r2 ####
-	mux2x1_16bit MemToReg (AluOut, DMemory[AluOut>>1], MemtoReg, WD); 
+	mux2x1_16bit MemReg (AluOut, DMemory[AluOut>>1], MemReg, WD); 
 	BranchCtrl BranchControl (Branch, Zero, BCtrlOut);
 	mux2x1_16bit muxBranch (PC2, Target, BCtrlOut, NextPC);
 
@@ -444,9 +450,9 @@ module testing ();
   //test program
   initial begin
     $display ("Time Clock IR       WD");
-    $monitor ("%2d   %b     %h     %h", $time,clock,IR,WD);
+    $monitor ("%2d   %b     %h     %d", $time,clock,IR,WD); 
     clock = 1;
-    #16 $finish;
+    #31 $finish;
   end
 
 endmodule
