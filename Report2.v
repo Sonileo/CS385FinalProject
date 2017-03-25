@@ -1,8 +1,7 @@
 /*
 	By: Daniel Kostecki, Sonia Leonato, Thi Nguyen
 	Class: CS 385
-	Progress Report 1 - Implementing a 16-bit MIPS machine in Verilog
-						(r-type and addi)
+	Progress Report 2 - Implementing a 16-bit MIPS machine in Verilog
 */
  
 /*
@@ -424,7 +423,7 @@ module CPU (clk, WD, IR);
     MainControl main (IR[15:12], {RegDst, AluSrc, MemReg, RegWrite, MemWrite, Branch, AluCtrl});
 	
 	//#### Added for r2 ####
-	mux2x1_16bit MemReg (AluOut, DMemory[AluOut>>1], MemReg, WD); 
+	mux2x1_16bit MemRegs (AluOut, DMemory[AluOut>>1], MemReg, WD); 
 	BranchCtrl BranchControl (Branch, Zero, BCtrlOut);
 	mux2x1_16bit muxBranch (PC2, Target, BCtrlOut, NextPC);
 
@@ -450,60 +449,9 @@ module testing ();
   //test program
   initial begin
     $display ("Time Clock IR       WD");
-    $monitor ("%2d   %b     %h     %d", $time,clock,IR,WD); 
+    $monitor ("%2d   %b     %h     %h", $time,clock,IR,WD); 
     clock = 1;
     #31 $finish;
   end
 
 endmodule
-
-
-/* Test results
-
-DMemory[0] = 16'h5; 
-DMemory[1] = 16'h7;
-
-Time Clock IR  WD
-0    1    5100 0005
-1    0    5202 0007
-2    1    5202 0007
-3    0    76c0 0001
-4    1    76c0 0001
-5    0    8c04 0001
-6    1    8c04 0001
-7    0    6102 0002
-8    1    6102 0002
-9    0    6200 0000
-10   1    6200 0000
-11   0    5100 0002
-12   1    5100 0002
-13   0    5202 0000
-14   1    5202 0000
-15   0    1640 fffe
-16   1    1640 fffe   
-
-
-DMemory[0] = 16'h7; 
-DMemory[1] = 16'h5;
-
-Time Clock IR  WD
-0    1    5100 0007
-1    0    5202 0005
-2    1    5202 0005
-3    0    76c0 0000
-4    1    76c0 0000
-5    0    8c04 0000
-6    1    8c04 0000
-7    0    1640 0002
-8    1    1640 0002
-9    0    xxxx xxxx
-10   1    xxxx xxxx
-11   0    xxxx xxxx
-12   1    xxxx xxxx
-13   0    xxxx xxxx
-14   1    xxxx xxxx
-15   0    xxxx xxxx
-16   1    xxxx xxxx
-
-
-*/
