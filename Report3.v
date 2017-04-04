@@ -441,7 +441,7 @@ module CPU (clk, WD, IR);
   //----------------------------------------------------
    reg [15:0] IDEX_IR; // For monitoring the pipeline
    reg IDEX_RegWrite,IDEX_ALUSrc,IDEX_RegDst;
-   reg [3:0]  IDEX_ALUOp;
+   reg [1:0]  IDEX_ALUOp;
    reg [15:0] IDEX_RD1,IDEX_RD2,IDEX_SignExt;
    reg [2:0]  IDEX_rt,IDEX_rd;
   //----------------------------------------------------
@@ -451,7 +451,7 @@ module CPU (clk, WD, IR);
   
   //=== EXE STAGE ===
    ALU exec(AluCtrl, IDEX_RD1, B, AluOut, Zero);
-   ALUControl ALUCtl(IDEX_ALUOp, IDEX_SignExt[6:0], AluCtrl); // ALU control unit
+   ALUControl ALUCtl(IDEX_ALUOp, IDEX_SignExt[5:0], AluCtrl); // ALU control unit
    assign B  = (IDEX_ALUSrc) ? IDEX_SignExt: IDEX_RD2;   // ALUSrc Mux 
    assign WR = (IDEX_RegDst) ? IDEX_rd: IDEX_rt;         // RegDst Mux
    assign WD = AluOut;
