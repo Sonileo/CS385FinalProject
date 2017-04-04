@@ -428,11 +428,11 @@ module CPU (clk, WD, IR);
   //----------------------------------------------------
    reg_file rf (IFID_IR[11:10],IFID_IR[9:8],WR,WD,IDEX_RegWrite,RD1,RD2,clk);
    MainControl MainCtr (IFID_IR[15:12],Control); 
-   assign SignExtend = {{16{IFID_IR[15]}},IFID_IR[15:0]}; 
+   assign SignExtend = {{8{IFID_IR[7]}},IFID_IR[7:0]}; 
   
   //=== EXE STAGE ===
    ALU exec(AluCtrl, IDEX_RD1, B, AluOut, Zero);
-   MainControl ALUCtrl(IDEX_ALUOp, {IDEX_SignExt[5:0], AluCtrl}); // ALU control unit
+   MainControl ALUCtl(IDEX_ALUOp, {IDEX_SignExt[5:0], AluCtrl}); // ALU control unit
    assign B  = (IDEX_ALUSrc) ? IDEX_SignExt: IDEX_RD2;   // ALUSrc Mux 
    assign WR = (IDEX_RegDst) ? IDEX_rd: IDEX_rt;         // RegDst Mux
    assign WD = AluOut;
