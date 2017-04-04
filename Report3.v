@@ -378,7 +378,6 @@ module CPU (clk, WD, IR);
 		//r-type = op(4),rs(2), rt(2), rd(2), unused(6)
 		//i-type = op(4), rs(2), rt(2), address/value(8)
 		
-    initial begin
   // Program with nop's - no hazards
     Imem[0]  = 16'b0100000100001111;  // addi $t1, $0,  15   ($t1=15)
     Imem[1]  = 16'b0100001000000111;  // addi $t2, $0,  7    ($t2= 7)
@@ -419,21 +418,19 @@ module CPU (clk, WD, IR);
    ALU fetch(3'b010,PC,16'b10,NextPC,Unused);
 
   //=== ID STAGE ===
-   wire [4:0] Control;
+   wire [9:0] Control;
   //----------------------------------------------------
    reg [15:0] IDEX_IR; // For monitoring the pipeline
    reg IDEX_RegWrite,IDEX_ALUSrc,IDEX_RegDst;
    reg [1:0]  IDEX_ALUOp;
    reg [15:0] IDEX_RD1,IDEX_RD2,IDEX_SignExt;
-   reg [4:0]  IDEX_rt,IDEX_rd;
+   reg [2:0]  IDEX_rt,IDEX_rd;
   //----------------------------------------------------
    reg_file rf (IFID_IR[11:10],IFID_IR[9:8],WR,WD,IDEX_RegWrite,RD1,RD2,clk);
    MainControl MainCtr (IFID_IR[15:12],Control); 
    assign SignExtend = {{16{IFID_IR[15]}},IFID_IR[15:0]}; 
   
   //=== EXE STAGE ===
-   wire [15:0] B,AluOut;
-   wire [4:0] WR;
    ALU exec(AluCtrl, IDEX_RD1, B, AluOut, Zero);
    MainControl ALUCtrl(IDEX_ALUOp, {IDEX_SignExt[5:0], AluCtrl}); // ALU control unit
    assign B  = (IDEX_ALUSrc) ? IDEX_SignExt: IDEX_RD2;   // ALUSrc Mux 
@@ -446,7 +443,7 @@ module CPU (clk, WD, IR);
 
   // Running the pipeline
 
-   always @(negedge clock) begin 
+   always @(negedge clk) begin 
 
   // Stage 1 - IF
     PC <= NextPC;
