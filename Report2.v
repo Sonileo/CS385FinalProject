@@ -419,7 +419,7 @@ module CPU (clk, WD, IR);
 	ALU branch (3'b010, SignExtend<<1, PC2, Target, Unused);
 	
 	//####### Made changes for report 2 #######
-    MainControl main (IR[15:12], {RegDst, AluSrc, MemReg, RegWrite, MemWrite, Branch, AluCtrl});
+  MainControl main (IR[15:12], {RegDst, AluSrc, MemReg, RegWrite, MemWrite, Branch, AluCtrl});
 	
 	//#### Added for r2 ####
 	mux2x1_16bit MemRegs (AluOut, DMemory[AluOut>>1], MemReg, WD); 

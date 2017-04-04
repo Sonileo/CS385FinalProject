@@ -388,7 +388,7 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
 	input clk;
 	output [15:0] AluOut, PC, IFID_IR, IDEX_IR, WD;
 	reg[15:0] PC;
-	reg[15:0] Imem[0:1023], DMemory[0:1023];    
+	reg[15:0] Imem[0:1023];    
 	wire [15:0] IR, NextPC, A, B, AluOut, RD1, RD2, SignExtend, PC2, Target, WD;
   wire [2:0] AluCtrl;
   wire [1:0] WR, Branch;
@@ -486,30 +486,7 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
   // Stage 3 - EX
   // No transfers needed here - on negedge WD is written into register WR
 
-  end
-
-
-/*
-		// Data
-		DMemory[0] = 16'h5; 
-		DMemory[1] = 16'h7;
-	end
-
-	ALU branch (3'b010, SignExtend<<1, PC2, Target, Unused);
-
-  MainControl main (IR[15:12], {RegDst, AluSrc, MemReg, RegWrite, MemWrite, Branch, AluCtrl});
-
-	mux2x1_16bit MemRegs (AluOut, DMemory[AluOut>>1], MemReg, WD); 
-	BranchCtrl BranchControl (Branch, Zero, BCtrlOut);
-	mux2x1_16bit muxBranch (PC2, Target, BCtrlOut, NextPC);
-
-	// Program counter
-    always @(negedge clk) begin
-        PC <= NextPC;
-		if (MemWrite) DMemory[AluOut>>1] <= RD2;	//#### Added for r2  #####
-    end
-
-*/
+   end
 	
 endmodule
 
