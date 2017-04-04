@@ -359,6 +359,25 @@ module MainControl (op,control);
   
 endmodule
 
+module ALUControl (AluOp,FunCode,ALUControl); 
+  input [1:0] AluOp;
+  input [5:0] FunCode;
+  output reg [2:0] ALUControl;
+
+  always @(AluOp,FunCode) case (AluOp)
+    2'b00: ALUControl <= 3'b010; // add
+    2'b01: ALUControl <= 3'b110; // subtract
+    2'b10: case (FunCode)
+       32: ALUControl <= 3'b010; // add
+       34: ALUControl <= 3'b110; // subtract
+       36: ALUControl <= 3'b000; // and
+       37: ALUControl <= 3'b001; // or
+       42: ALUControl <= 3'b111; // slt
+  default: ALUControl <= 15; 
+    endcase
+  endcase
+endmodule
+
 
 /*
 	CPU module which implements the other major components (ALU, Register,
@@ -432,7 +451,7 @@ module CPU (clk, WD, IR);
   
   //=== EXE STAGE ===
    ALU exec(AluCtrl, IDEX_RD1, B, AluOut, Zero);
-   MainControl ALUCtl(IDEX_ALUOp, {IDEX_SignExt[5:0], AluCtrl}); // ALU control unit
+   ALUControl ALUCtl(IDEX_ALUOp, IDEX_SignExt[6:0], AluCtrl); // ALU control unit
    assign B  = (IDEX_ALUSrc) ? IDEX_SignExt: IDEX_RD2;   // ALUSrc Mux 
    assign WR = (IDEX_RegDst) ? IDEX_rd: IDEX_rt;         // RegDst Mux
    assign WD = AluOut;
