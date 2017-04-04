@@ -422,7 +422,7 @@ module CPU (clk, WD, IR);
   //----------------------------------------------------
    reg [15:0] IDEX_IR; // For monitoring the pipeline
    reg IDEX_RegWrite,IDEX_ALUSrc,IDEX_RegDst;
-   reg [1:0]  IDEX_ALUOp;
+   reg [3:0]  IDEX_ALUOp;
    reg [15:0] IDEX_RD1,IDEX_RD2,IDEX_SignExt;
    reg [2:0]  IDEX_rt,IDEX_rd;
   //----------------------------------------------------
@@ -465,35 +465,15 @@ module CPU (clk, WD, IR);
 
 
 /*
-	
 		// Data
 		DMemory[0] = 16'h5; 
 		DMemory[1] = 16'h7;
 	end
-	
-	initial PC = 0;
 
-    assign IR = Imem[PC>>1];
-
-    mux2x1_2bit muxWR (IR[9:8], IR[7:6], RegDst, WR);  
-
-    mux2x1_16bit muxB (RD2, SignExtend, AluSrc, B);	   
-
-    assign SignExtend = {{8{IR[7]}},IR[7:0]};
-
-    reg_file rf (IR[11:10], IR[9:8], WR, WD, RegWrite, A, RD2, clk);
-
-    ALU fetch (3'b010, PC, 16'b10, PC2, Unused);
-
-    ALU exec (AluCtrl, A, B, AluOut, Zero);
-	
-	//#### Added for branching for r2 ####
 	ALU branch (3'b010, SignExtend<<1, PC2, Target, Unused);
-	
-	//####### Made changes for report 2 #######
-    MainControl main (IR[15:12], {RegDst, AluSrc, MemReg, RegWrite, MemWrite, Branch, AluCtrl});
-	
-	//#### Added for r2 ####
+
+  MainControl main (IR[15:12], {RegDst, AluSrc, MemReg, RegWrite, MemWrite, Branch, AluCtrl});
+
 	mux2x1_16bit MemRegs (AluOut, DMemory[AluOut>>1], MemReg, WD); 
 	BranchCtrl BranchControl (Branch, Zero, BCtrlOut);
 	mux2x1_16bit muxBranch (PC2, Target, BCtrlOut, NextPC);
