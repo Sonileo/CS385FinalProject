@@ -1,7 +1,7 @@
 /*
 	By: Daniel Kostecki, Sonia Leonato, Thi Nguyen
 	Class: CS 385
-	Progress Report 2 - Implementing a 16-bit MIPS machine in Verilog
+	Progress Report 3 - Implementing a 16-bit MIPS machine in Verilog
 */
  
 /*
@@ -20,7 +20,7 @@ module reg_file (rr1,rr2,wr,wd,regwrite,rd1,rd2,clock);
 
 	//registers
    register r1 (wd,c1,q1),
-		    r2 (wd,c2,q2),
+		        r2 (wd,c2,q2),
             r3 (wd,c3,q3);
 
 	//output port
@@ -369,9 +369,9 @@ module CPU (clk, WD, IR);
 	output [15:0] AluOut, IR, WD;
 	reg[15:0] PC;
 	reg[15:0] Imem[0:1023], DMemory[0:1023];    
-	wire [15:0] IR, NextPC, A, B, AluOut, RD2, SignExtend, PC2, Target;
-    wire [2:0] AluCtrl;
-    wire [1:0] WR, Branch;
+	wire [15:0] IR, NextPC, A, B, AluOut, RD1, RD2, SignExtend, PC2, Target, WD;
+  wire [2:0] AluCtrl;
+  wire [1:0] WR, Branch;
 	
 	//To test
 	initial begin
@@ -393,6 +393,65 @@ module CPU (clk, WD, IR);
 		Imem[12]= 16'b0000010101000000;  // add $1, $1, $1 	    #skip	
 
 
+
+
+  // Pipeline stages
+
+  //=== IF STAGE ===
+   reg[15:0] IFID_IR;
+  //--------------------------------
+   ALU fetch(3'b010,PC,16'b10,NextPC,Unused);
+
+  //=== ID STAGE ===
+   wire [4:0] Control;
+  //----------------------------------------------------
+   reg [15:0] IDEX_IR; // For monitoring the pipeline
+   reg IDEX_RegWrite,IDEX_ALUSrc,IDEX_RegDst;
+   reg [1:0]  IDEX_ALUOp;
+   reg [15:0] IDEX_RD1,IDEX_RD2,IDEX_SignExt;
+   reg [4:0]  IDEX_rt,IDEX_rd;
+  //----------------------------------------------------
+   reg_file rf (IFID_IR[11:10],IFID_IR[9:8],WR,WD,IDEX_RegWrite,RD1,RD2,clk);
+   MainControl MainCtr (IFID_IR[15:12],Control); 
+   assign SignExtend = {{16{IFID_IR[15]}},IFID_IR[15:0]}; 
+  
+  //=== EXE STAGE ===
+   wire [15:0] B,AluOut;
+   wire [4:0] WR;
+   ALU exec(AluCtrl, IDEX_RD1, B, AluOut, Zero);
+   MainControl ALUCtrl(IDEX_ALUOp, {IDEX_SignExt[5:0], AluCtrl}); // ALU control unit
+   assign B  = (IDEX_ALUSrc) ? IDEX_SignExt: IDEX_RD2;   // ALUSrc Mux 
+   assign WR = (IDEX_RegDst) ? IDEX_rd: IDEX_rt;         // RegDst Mux
+   assign WD = AluOut;
+
+   initial begin
+    PC = 0;
+   end
+
+  // Running the pipeline
+
+   always @(negedge clock) begin 
+
+  // Stage 1 - IF
+    PC <= NextPC;
+    IFID_IR <= Imem[PC>>1];
+
+  // Stage 2 - ID
+    IDEX_IR <= IFID_IR; // For monitoring the pipeline
+    {IDEX_RegDst,IDEX_ALUSrc,IDEX_RegWrite,IDEX_ALUOp} <= Control;    
+    IDEX_RD1 <= RD1; 
+    IDEX_RD2 <= RD2;
+    IDEX_SignExt <= SignExtend;
+    IDEX_rt <= IFID_IR[9:8];
+    IDEX_rd <= IFID_IR[7:6];
+
+  // Stage 3 - EX
+  // No transfers needed here - on negedge WD is written into register WR
+
+  end
+
+
+/*
 	
 		// Data
 		DMemory[0] = 16'h5; 
@@ -431,6 +490,8 @@ module CPU (clk, WD, IR);
         PC <= NextPC;
 		if (MemWrite) DMemory[AluOut>>1] <= RD2;	//#### Added for r2  #####
     end
+
+*/
 	
 endmodule
 
