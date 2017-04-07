@@ -453,8 +453,13 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
   //=== EXE STAGE ===
    ALU exec(AluCtrl, IDEX_RD1, B, AluOut, Zero);
    ALUControl ALUCtl(IDEX_ALUOp, IDEX_SignExt[5:0], AluCtrl); // ALU control unit
-   assign B  = (IDEX_ALUSrc) ? IDEX_SignExt: IDEX_RD2;   // ALUSrc Mux 
-   assign WR = (IDEX_RegDst) ? IDEX_rd: IDEX_rt;         // RegDst Mux
+   
+   //assign B  = (IDEX_ALUSrc) ? IDEX_SignExt: IDEX_RD2;   // ALUSrc Mux 
+   mux2x1_16bit muxB (IDEX_RD2, IDEX_SignExt, IDEX_ALUSrc, B);
+   
+   //assign WR = (IDEX_RegDst) ? IDEX_rd: IDEX_rt;         // RegDst Mux
+   mux2x1_2bit muxWR (IDEX_rt, IDEX_rd, IDEX_RegDst, WR);
+   
    assign WD = AluOut;
 
    initial begin
