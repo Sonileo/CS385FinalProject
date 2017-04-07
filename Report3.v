@@ -383,9 +383,10 @@ endmodule
 	CPU module which implements the other major components (ALU, Register,
 	and control unit).
 */
-module CPU (clk, WD, IR);
+// ### cpu module remodled for report 3 ###
+module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
 	input clk;
-	output [15:0] AluOut, IR, WD;
+	output [15:0] AluOut, PC, IFID_IR, IDEX_IR, WD;
 	reg[15:0] PC;
 	reg[15:0] Imem[0:1023], DMemory[0:1023];    
 	wire [15:0] IR, NextPC, A, B, AluOut, RD1, RD2, SignExtend, PC2, Target, WD;
@@ -440,7 +441,7 @@ module CPU (clk, WD, IR);
    wire [9:0] Control;
   //----------------------------------------------------
    reg [15:0] IDEX_IR; // For monitoring the pipeline
-   reg IDEX_RegWrite,IDEX_ALUSrc,IDEX_RegDst;
+   reg IDEX_RegWrite, IDEX_ALUSrc, IDEX_RegDst;
    reg [1:0]  IDEX_ALUOp;
    reg [15:0] IDEX_RD1,IDEX_RD2,IDEX_SignExt;
    reg [2:0]  IDEX_rt,IDEX_rd;
@@ -509,21 +510,20 @@ endmodule
 
 
 //	Test module using the CPU.
-module testing ();
+module test ();
 
   reg clock;
-  wire [15:0] WD,IR;
+  wire [15:0] PC,IFID_IR,IDEX_IR,WD;
 
-  CPU test_cpu(clock,WD,IR);
+  CPU test_cpu(clock,PC,IFID_IR,IDEX_IR,WD);
 
   always #1 clock = ~clock;
   
-  //test program
   initial begin
-    $display ("Time Clock IR       WD");
-    $monitor ("%2d   %b     %h     %h", $time,clock,IR,WD); 
+    $display (" PC  IFID_IR  IDEX_IR   WD");
+    $monitor ("%3d  %h       %h %3d", PC,IFID_IR,IDEX_IR,WD);
     clock = 1;
-    #31 $finish;
+    #29 $finish;
   end
 
 endmodule
