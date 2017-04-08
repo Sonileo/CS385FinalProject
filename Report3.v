@@ -20,7 +20,7 @@ module reg_file (rr1,rr2,wr,wd,regwrite,rd1,rd2,clock);
 
 	//registers
    register r1 (wd,c1,q1),
-		    r2 (wd,c2,q2),
+		        r2 (wd,c2,q2),
             r3 (wd,c3,q3);
 
 	//output port
@@ -103,20 +103,20 @@ module ALU (op,a,b,result,zero);
    wire c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16;
   
    ALU1   alu0 (a[0],b[0],op[2],op[1:0],set,op[2],c1,result[0]),
-		  alu1 (a[1],b[1],op[2],op[1:0],0,c1,c2,result[1]),
-		  alu2 (a[2],b[2],op[2],op[1:0],0,c2,c3,result[2]),
-		  alu3 (a[3],b[3],op[2],op[1:0],0,c3,c4,result[3]),
+		      alu1 (a[1],b[1],op[2],op[1:0],0,c1,c2,result[1]),
+		      alu2 (a[2],b[2],op[2],op[1:0],0,c2,c3,result[2]),
+		      alu3 (a[3],b[3],op[2],op[1:0],0,c3,c4,result[3]),
           alu4 (a[4],b[4],op[2],op[1:0],0,c4,c5,result[4]),
           alu5 (a[5],b[5],op[2],op[1:0],0,c5,c6,result[5]),
           alu6 (a[6],b[6],op[2],op[1:0],0,c6,c7,result[6]),
-		  alu7 (a[7],b[7],op[2],op[1:0],0,c7,c8,result[7]),
-		  alu8 (a[8],b[8],op[2],op[1:0],0,c8,c9,result[8]),
-		  alu9 (a[9],b[9],op[2],op[1:0],0,c9,c10,result[9]),
-		  alu10(a[10],b[10],op[2],op[1:0],0,c10,c11,result[10]),
-		  alu11(a[11],b[11],op[2],op[1:0],0,c11,c12,result[11]),
-		  alu12(a[12],b[12],op[2],op[1:0],0,c12,c13,result[12]),
-		  alu13(a[13],b[13],op[2],op[1:0],0,c13,c14,result[13]),
-		  alu14(a[14],b[14],op[2],op[1:0],0,c14,c15,result[14]);
+		      alu7 (a[7],b[7],op[2],op[1:0],0,c7,c8,result[7]),
+		      alu8 (a[8],b[8],op[2],op[1:0],0,c8,c9,result[8]),
+		      alu9 (a[9],b[9],op[2],op[1:0],0,c9,c10,result[9]),
+		      alu10(a[10],b[10],op[2],op[1:0],0,c10,c11,result[10]),
+		      alu11(a[11],b[11],op[2],op[1:0],0,c11,c12,result[11]),
+		      alu12(a[12],b[12],op[2],op[1:0],0,c12,c13,result[12]),
+		      alu13(a[13],b[13],op[2],op[1:0],0,c13,c14,result[13]),
+		      alu14(a[14],b[14],op[2],op[1:0],0,c14,c15,result[14]);
    ALUmsb alu15(a[15],b[15],op[2],op[1:0],0,c15,c16,result[15],set);
 
    // If result = 0 then zero = 1
@@ -384,12 +384,12 @@ endmodule
 	and control unit).
 */
 // ### cpu module remodled for report 3 ###
-module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
+  module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
 	input clk;
-	output [15:0] AluOut, PC, IFID_IR, IDEX_IR, WD;
+	output [15:0] PC, IFID_IR, IDEX_IR, WD;
 	reg[15:0] PC;
-	reg[15:0] Imem[0:1023], DMemory[0:1023];    
-	wire [15:0] IR, NextPC, A, B, AluOut, RD1, RD2, SignExtend, PC2, Target, WD;
+	reg[15:0] Imem[0:1023];    
+	wire [15:0] IR, NextPC, AluOut, A, B, RD1, RD2, SignExtend, Target;
   wire [2:0] AluCtrl;
   wire [1:0] WR, Branch;
 	
@@ -488,28 +488,6 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
 
   end
 
-
-/*
-		// Data
-		DMemory[0] = 16'h5; 
-		DMemory[1] = 16'h7;
-	end
-
-	ALU branch (3'b010, SignExtend<<1, PC2, Target, Unused);
-
-  MainControl main (IR[15:12], {RegDst, AluSrc, MemReg, RegWrite, MemWrite, Branch, AluCtrl});
-
-	mux2x1_16bit MemRegs (AluOut, DMemory[AluOut>>1], MemReg, WD); 
-	BranchCtrl BranchControl (Branch, Zero, BCtrlOut);
-	mux2x1_16bit muxBranch (PC2, Target, BCtrlOut, NextPC);
-
-	// Program counter
-    always @(negedge clk) begin
-        PC <= NextPC;
-		if (MemWrite) DMemory[AluOut>>1] <= RD2;	//#### Added for r2  #####
-    end
-
-*/
 	
 endmodule
 
