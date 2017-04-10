@@ -384,13 +384,14 @@ endmodule
 	and control unit).
 */
 // ### cpu module remodled for report 3 ###
-  module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
+module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
 	input clk;
 	output [15:0] PC, IFID_IR, IDEX_IR, WD;
+	//----
 	reg[15:0] PC;
 	reg[15:0] Imem[0:1023];    
 	wire [15:0] IR, NextPC, AluOut, A, B, RD1, RD2, SignExtend, Target;
-  wire [2:0] AluCtrl;
+  reg [2:0] AluCtrl;
   wire [1:0] WR, Branch;
 	
 	//To test
@@ -433,7 +434,7 @@ endmodule
   // Pipeline stages
 
   //=== IF STAGE ===
-   reg[15:0] IFID_IR;
+   reg[15:0] IFID_IR, IFID_PC2;
   //--------------------------------
    ALU fetch(3'b010,PC,16'b10,NextPC,Unused);
 
@@ -441,10 +442,10 @@ endmodule
    wire [9:0] Control;
   //----------------------------------------------------
    reg [15:0] IDEX_IR; // For monitoring the pipeline
-   reg IDEX_RegWrite, IDEX_ALUSrc, IDEX_RegDst;
+   reg IDEX_RegWrite, IDEX_ALUSrc, IDEX_RegDst, IDEX_MemToReg, IDEX_MemWrite;
    reg [1:0]  IDEX_ALUOp;
    reg [15:0] IDEX_RD1,IDEX_RD2,IDEX_SignExt;
-   reg [2:0]  IDEX_rt,IDEX_rd;
+   reg [1:0]  IDEX_rt,IDEX_rd;
   //----------------------------------------------------
    reg_file rf (IFID_IR[11:10],IFID_IR[9:8],WR,WD,IDEX_RegWrite,RD1,RD2,clk);
    MainControl MainCtr (IFID_IR[15:12],Control); 
@@ -452,7 +453,7 @@ endmodule
   
   //=== EXE STAGE ===
    ALU exec(AluCtrl, IDEX_RD1, B, AluOut, Zero);
-   ALUControl ALUCtl(IDEX_ALUOp, IDEX_SignExt[5:0], AluCtrl); // ALU control unit
+   //ALUControl ALUCtl(IDEX_ALUOp, IDEX_SignExt[5:0], AluCtrl); // ALU control unit
    
    //assign B  = (IDEX_ALUSrc) ? IDEX_SignExt: IDEX_RD2;   // ALUSrc Mux 
    mux2x1_16bit muxB (IDEX_RD2, IDEX_SignExt, IDEX_ALUSrc, B);
@@ -476,7 +477,7 @@ endmodule
 
   // Stage 2 - ID
     IDEX_IR <= IFID_IR; // For monitoring the pipeline
-    {IDEX_RegDst,IDEX_ALUSrc,IDEX_RegWrite,IDEX_ALUOp} <= Control;    
+    {IDEX_RegDst,IDEX_ALUSrc, IDEX_MemToReg, IDEX_RegWrite, IDEX_MemWrite, IDEX_ALUOp, AluCtrl} <= Control;    
     IDEX_RD1 <= RD1; 
     IDEX_RD2 <= RD2;
     IDEX_SignExt <= SignExtend;
