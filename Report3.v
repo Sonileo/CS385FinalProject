@@ -322,7 +322,7 @@ module decoder (S1,S0,D3,D2,D1,D0);
 	   
 endmodule 
 
-// #### Branch Control ####
+// Branch Control 
 module BranchCtrl(Op, Zero, Out);
 	input [1:0] Op;
 	input Zero;
@@ -351,50 +351,29 @@ module MainControl (op,control);
 	
 	//I-type
     4'b0100: control <= 10'b0101000010; // ADDI
-	4'b0101: control <= 10'b0111000010; // LW  (added for report 2)
-    4'b0110: control <= 10'b0100100010; // SW  (added for report 2)
-    4'b1000: control <= 10'b0000001110; // BEQ (added for report 2)
-    4'b1001: control <= 10'b0000010110; // BNE (added for report 2)
+	4'b0101: control <= 10'b0111000010; // LW  
+    4'b0110: control <= 10'b0100100010; // SW  
+    4'b1000: control <= 10'b0000001110; // BEQ 
+    4'b1001: control <= 10'b0000010110; // BNE 
   endcase
   
 endmodule
-
-module ALUControl (AluOp,FunCode,ALUControl); 
-  input [1:0] AluOp;
-  input [5:0] FunCode;
-  output reg [2:0] ALUControl;
-
-  always @(AluOp,FunCode) case (AluOp)
-    2'b00: ALUControl <= 3'b010; // add
-    2'b01: ALUControl <= 3'b110; // subtract
-    2'b10: case (FunCode)
-       32: ALUControl <= 3'b010; // add
-       34: ALUControl <= 3'b110; // subtract
-       36: ALUControl <= 3'b000; // and
-       37: ALUControl <= 3'b001; // or
-       42: ALUControl <= 3'b111; // slt
-  default: ALUControl <= 15; 
-    endcase
-  endcase
-endmodule
-
 
 /*
 	CPU module which implements the other major components (ALU, Register,
 	and control unit).
 */
-// ### cpu module remodled for report 3 ###
+// #### cpu module remodled for report 3 ####
 module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
 	input clk;
 	output [15:0] PC, IFID_IR, IDEX_IR, WD;
-	//----
 	reg[15:0] PC;
 	reg[15:0] Imem[0:1023];    
-	wire [15:0] IR, NextPC, AluOut, A, B, RD1, RD2, SignExtend, Target;
-  reg [2:0] AluCtrl;
-  wire [1:0] WR, Branch;
+	wire [15:0] NextPC, AluOut, A, B, RD1, RD2, SignExtend;
+	reg [2:0] AluCtrl;
+	wire [1:0] WR;
  
-	//To test
+	//Test Program
 	initial begin
 		//r-type = op(4),rs(2), rt(2), rd(2), unused(6)
 		//i-type = op(4), rs(2), rt(2), address/value(8)
@@ -410,9 +389,9 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
     Imem[7] = 16'b0011101110000000;    // or   $t2, $t2, $t3 ($t2 = 15)
     Imem[8] = 16'b0000000000000000;    // nop
     Imem[9] = 16'b0000101111000000;    // add  $t3, $t2, $t3 ($t3 = 22)
-    Imem[10]= 16'b0000000000000000;    // nop
-    Imem[11]= 16'b0111111001000000;    // slt  $t1, $t3, $t2 ($t1 = 0)
-    Imem[12]= 16'b0111101101000000;    // slt  $t1, $t2, $t3 ($t1 = 1)
+    Imem[10]= 16'b0000000000000000;   // nop
+    Imem[11]= 16'b0111111001000000;   // slt  $t1, $t3, $t2 ($t1 = 0)
+    Imem[12]= 16'b0111101101000000;   // slt  $t1, $t2, $t3 ($t1 = 1)
 
   end
 
@@ -427,7 +406,6 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
     Imem[5] = 16'b0000101111000000;  // add  $t3, $t2, $t3 ($t3 = 22)
     Imem[6] = 16'b0111111001000000;  // slt  $t1, $t3, $t2 ($t1 = 0)
     Imem[7] = 16'b0111101101000000;  // slt  $t1, $t2, $t3 ($t1 = 1)
-
   end
 */
 
@@ -455,7 +433,6 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
   
   //=== EXE STAGE ===
    ALU exec(AluCtrl, IDEX_RD1, B, AluOut, Zero);
-   //ALUControl ALUCtl(IDEX_ALUOp, IDEX_SignExt[5:0], AluCtrl); // ALU control unit
    
    //assign B  = (IDEX_ALUSrc) ? IDEX_SignExt: IDEX_RD2;   // ALUSrc Mux 
    mux2x1_16bit muxB (IDEX_RD2, IDEX_SignExt, IDEX_ALUSrc, B);
@@ -490,8 +467,6 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
   // No transfers needed here - on negedge WD is written into register WR
 
   end
-
-	
 endmodule
 
 
@@ -506,8 +481,8 @@ module test ();
   always #1 clock = ~clock;
   
   initial begin
-    $display ("Time Clock  PC  IFID_IR  IDEX_IR   WD");
-    $monitor ("%4d %5d %3d %5h %8h %7d", $time, clock, PC,IFID_IR,IDEX_IR,WD);
+    $display ("Time  PC  IFID_IR  IDEX_IR   WD");
+    $monitor ("%4d %3d %5h %8h %7d", $time,PC,IFID_IR,IDEX_IR,WD);
     clock = 1;
     #29 $finish;
   end
