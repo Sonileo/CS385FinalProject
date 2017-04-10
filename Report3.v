@@ -393,39 +393,41 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
 	wire [15:0] IR, NextPC, AluOut, A, B, RD1, RD2, SignExtend, Target;
   reg [2:0] AluCtrl;
   wire [1:0] WR, Branch;
-	
+ 
 	//To test
 	initial begin
 		//r-type = op(4),rs(2), rt(2), rd(2), unused(6)
 		//i-type = op(4), rs(2), rt(2), address/value(8)
 		
   // Program with nop's - no hazards
-    Imem[0]  = 16'b0100000100001111;  // addi $t1, $0,  15   ($t1=15)
-    Imem[1]  = 16'b0100001000000111;  // addi $t2, $0,  7    ($t2= 7)
-    Imem[2]  = 16'b0000000000000000;  // nop
-    Imem[3]  = 16'b0000011011000000;  // and  $t3, $t1, $t2  ($t3= 7)
-    Imem[4]  = 16'b0000000000000000;  // nop
-    Imem[5]  = 16'b0110011110000000;  // sub  $t2, $t1, $t3  ($t2= 8)
-    Imem[6]  = 16'b0000000000000000;  // nop
-    Imem[7]  = 16'b0001101110000000;  // or   $t2, $t2, $t3  ($t2=15)
-    Imem[8]  = 16'b0000000000000000;  // nop
-    Imem[9]  = 16'b0010101111000000;  // add  $t3, $t2, $t3  ($t3=22)
-    Imem[10] = 16'b0000000000000000;  // nop
-    Imem[11] = 16'b0111111001000000;  // slt  $t1, $t3, $t2  ($t1= 0)
-    Imem[12] = 16'b0111101101000000;  // slt  $t1, $t2, $t3  ($t1= 1)
+    Imem[0] = 16'b0100000100001111;    // addi $t1, $0, 15   ($t1 = 15)
+    Imem[1] = 16'b0100001000000111;    // addi $t2, $0, 7    ($t1 = 7)
+    Imem[2] = 16'b0000000000000000;    // nop
+    Imem[3] = 16'b0010011011000000;    // and  $t3, $t1, $t2 ($t3 = 7)
+    Imem[4] = 16'b0000000000000000;    // nop
+    Imem[5] = 16'b0001011110000000;    // sub  $t2, $t1, $t3 ($t2 = 8)
+    Imem[6] = 16'b0000000000000000;    // nop
+    Imem[7] = 16'b0011101110000000;    // or   $t2, $t2, $t3 ($t2 = 15)
+    Imem[8] = 16'b0000000000000000;    // nop
+    Imem[9] = 16'b0000101111000000;    // add  $t3, $t2, $t3 ($t3 = 22)
+    Imem[10]= 16'b0000000000000000;    // nop
+    Imem[11]= 16'b0111111001000000;    // slt  $t1, $t3, $t2 ($t1 = 0)
+    Imem[12]= 16'b0111101101000000;    // slt  $t1, $t2, $t3 ($t1 = 1)
+
   end
 
 /*
   initial begin 
   // Program without nop's - wrong results
-    Imem[0]  = 16'b0100000100001111;  // addi $t1, $0,  15   ($t1=15)
-    Imem[1]  = 16'b0100001000000111;  // addi $t2, $0,  7    ($t2= 7)
-    Imem[2]  = 16'b0000011011000000;  // and  $t3, $t1, $t2  ($t3= 7)
-    Imem[3]  = 16'b0110011110000000;  // sub  $t2, $t1, $t3  ($t2= 8)
-    Imem[4]  = 16'b0001101110000000;  // or   $t2, $t2, $t3  ($t2=15)
-    Imem[5]  = 16'b0010101111000000;  // add  $t3, $t2, $t3  ($t3=22)
-    Imem[6] = 16'b0111111001000000;  // slt  $t1, $t3, $t2  ($t1= 0)
-    Imem[7] = 16'b0111101101000000;  // slt  $t1, $t2, $t3  ($t1= 1)
+    Imem[0] = 16'b0100000100001111;  // addi $t1, $0, 15   ($t1 = 15)
+    Imem[1] = 16'b0100001000000111;  // addi $t2, $0, 7    ($t1 = 7)
+    Imem[2] = 16'b0010011011000000;  // and  $t3, $t1, $t2 ($t3 = 7)
+    Imem[3] = 16'b0001011110000000;  // sub  $t2, $t1, $t3 ($t2 = 8)
+    Imem[4] = 16'b0011101110000000;  // or   $t2, $t2, $t3 ($t2 = 15)
+    Imem[5] = 16'b0000101111000000;  // add  $t3, $t2, $t3 ($t3 = 22)
+    Imem[6] = 16'b0111111001000000;  // slt  $t1, $t3, $t2 ($t1 = 0)
+    Imem[7] = 16'b0111101101000000;  // slt  $t1, $t2, $t3 ($t1 = 1)
+
   end
 */
 
@@ -443,7 +445,7 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
   //----------------------------------------------------
    reg [15:0] IDEX_IR; // For monitoring the pipeline
    reg IDEX_RegWrite, IDEX_ALUSrc, IDEX_RegDst, IDEX_MemToReg, IDEX_MemWrite;
-   reg [1:0]  IDEX_ALUOp;
+   reg [1:0]  IDEX_Branch;
    reg [15:0] IDEX_RD1,IDEX_RD2,IDEX_SignExt;
    reg [1:0]  IDEX_rt,IDEX_rd;
   //----------------------------------------------------
@@ -477,7 +479,7 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, WD);
 
   // Stage 2 - ID
     IDEX_IR <= IFID_IR; // For monitoring the pipeline
-    {IDEX_RegDst,IDEX_ALUSrc, IDEX_MemToReg, IDEX_RegWrite, IDEX_MemWrite, IDEX_ALUOp, AluCtrl} <= Control;    
+    {IDEX_RegDst,IDEX_ALUSrc, IDEX_MemToReg, IDEX_RegWrite, IDEX_MemWrite, IDEX_Branch, AluCtrl} <= Control;    
     IDEX_RD1 <= RD1; 
     IDEX_RD2 <= RD2;
     IDEX_SignExt <= SignExtend;
@@ -504,8 +506,8 @@ module test ();
   always #1 clock = ~clock;
   
   initial begin
-    $display (" PC  IFID_IR  IDEX_IR   WD");
-    $monitor ("%3d  %h       %h %3d", PC,IFID_IR,IDEX_IR,WD);
+    $display ("Time Clock  PC  IFID_IR  IDEX_IR   WD");
+    $monitor ("%4d %5d %3d %5h %8h %7d", $time, clock, PC,IFID_IR,IDEX_IR,WD);
     clock = 1;
     #29 $finish;
   end
