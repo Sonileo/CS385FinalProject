@@ -106,9 +106,9 @@ module ALU (op,a,b,result,zero);
           alu1 (a[1],b[1],op[2],op[1:0],0,c1,c2,result[1]),
           alu2 (a[2],b[2],op[2],op[1:0],0,c2,c3,result[2]),
           alu3 (a[3],b[3],op[2],op[1:0],0,c3,c4,result[3]),
-        alu4 (a[4],b[4],op[2],op[1:0],0,c4,c5,result[4]),
-        alu5 (a[5],b[5],op[2],op[1:0],0,c5,c6,result[5]),
-        alu6 (a[6],b[6],op[2],op[1:0],0,c6,c7,result[6]),
+		  alu4 (a[4],b[4],op[2],op[1:0],0,c4,c5,result[4]),
+          alu5 (a[5],b[5],op[2],op[1:0],0,c5,c6,result[5]),
+          alu6 (a[6],b[6],op[2],op[1:0],0,c6,c7,result[6]),
           alu7 (a[7],b[7],op[2],op[1:0],0,c7,c8,result[7]),
           alu8 (a[8],b[8],op[2],op[1:0],0,c8,c9,result[8]),
           alu9 (a[9],b[9],op[2],op[1:0],0,c9,c10,result[9]),
@@ -351,7 +351,7 @@ module MainControl (op,control);
   
   //I-type
     4'b0100: control <= 10'b0101000010; // ADDI
-  4'b0101: control <= 10'b0111000010; // LW  
+    4'b0101: control <= 10'b0111000010; // LW  
     4'b0110: control <= 10'b0100100010; // SW  
     4'b1000: control <= 10'b0000001110; // BEQ 
     4'b1001: control <= 10'b0000010110; // BNE 
@@ -418,8 +418,12 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, EXMEM_IR, MEMWB_IR, WD);
    reg[15:0] IFID_IR, IFID_PC2;
   //--------------------------------
    ALU fetch (3'b010,PC,16'b10,PC2,Unused);
-   assign NextPC = (EXMEM_Branch && EXMEM_Zero) ? EXMEM_Target: PC2;
-
+   
+   //assign NextPC = (EXMEM_Branch && EXMEM_Zero) ? EXMEM_Target: PC2;
+   BranchCtrl bc(EXMEM_Branch, EXMEM_Zero, BranchCtrlOut);
+   mux2x1_16bit BMux(PC2, EXMEM_Target, BranchCtrlOut, NextPC);
+	
+	
    reg MEMWB_RegWrite,MEMWB_MemtoReg;
    reg[1:0] MEMWB_rd;
 
@@ -443,8 +447,8 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, EXMEM_IR, MEMWB_IR, WD);
   //=== EXE STAGE ===
    wire [15:0] Target;
   //----------------------------------------------------
-   reg EXMEM_RegWrite,EXMEM_MemtoReg,
-       EXMEM_Branch,  EXMEM_MemWrite;
+   reg EXMEM_RegWrite,EXMEM_MemtoReg,  EXMEM_MemWrite;
+   reg [1:0] EXMEM_Branch;
    reg EXMEM_Zero;
    reg [15:0] EXMEM_Target,EXMEM_ALUOut,EXMEM_RD2;
    reg [15:0] EXMEM_IR; // For monitoring the pipeline
@@ -460,7 +464,6 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, EXMEM_IR, MEMWB_IR, WD);
    mux2x1_2bit muxWR (IDEX_rt, IDEX_rd, IDEX_RegDst, WR);
 
 
-
    //=== MEM STAGE ===
    reg [15:0] DMemory[0:1023],MEMWB_MemOut,MEMWB_ALUOut;
    reg [15:0] MEMWB_IR; // For monitoring the pipeline
@@ -470,13 +473,9 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, EXMEM_IR, MEMWB_IR, WD);
    assign MemOut = DMemory[EXMEM_ALUOut>>2];
    always @(negedge clk) if (EXMEM_MemWrite) DMemory[EXMEM_ALUOut>>2] <= EXMEM_RD2;
   
-
-
    //=== WD STAGE ===
    //assign WD = (MEMWB_MemtoReg) ? MEMWB_MemOut: MEMWB_ALUOut; // MemtoReg Mux
    mux2x1_16bit muxWD (MEMWB_ALUOut, MEMWB_MemOut, MEMWB_MemtoReg, WD);
-
-
 
    initial begin
     PC = 0;
@@ -547,7 +546,7 @@ module test ();
   
   initial begin
     $display ("time PC  IFID_IR  IDEX_IR  EXMEM_IR MEMWB_IR WD");
-    $monitor ("%2d  %3d  %h %h %h %h %h", $time,PC,IFID_IR,IDEX_IR,EXMEM_IR,MEMWB_IR,WD);
+    $monitor ("%2d  %3d  %h     %h     %h     %h %d", $time,PC,IFID_IR,IDEX_IR,EXMEM_IR,MEMWB_IR,WD);
     clock = 1;
     #56 $finish;
   end
