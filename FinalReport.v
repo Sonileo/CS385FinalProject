@@ -544,7 +544,7 @@ module test ();
   
   initial begin
     $display ("time PC  IFID_IR  IDEX_IR  EXMEM_IR MEMWB_IR WD");
-    $monitor ("%2d  %3d  %h     %h     %h     %h %d", $time,PC,IFID_IR,IDEX_IR,EXMEM_IR,MEMWB_IR,WD);
+    $monitor ("%2d  %3d  %h     %h     %h     %h     %h", $time,PC,IFID_IR,IDEX_IR,EXMEM_IR,MEMWB_IR,WD);
     clock = 1;
     #56 $finish;
   end
