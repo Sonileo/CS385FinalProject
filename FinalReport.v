@@ -330,8 +330,8 @@ module BranchCtrl(Op, Zero, Out);
   wire pZero, i0,i1; 
   
   not n(pZero, Zero);
-  and a1(i0, Op[0], Zero),
-    a2(i1, Op[1], pZero);
+  and a1(i0, Op[0], Zero),	//beq
+    a2(i1, Op[1], pZero);	//bne
   or o(Out,i0,i1);
 endmodule
 
@@ -380,25 +380,25 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, EXMEM_IR, MEMWB_IR, WD);
 
     // Program: swap memory cells (if needed) and compute absolute value |5-7|=2
      Imem[0]  = 16'b0101000100000000;  // lw $1, 0($0)
-     Imem[1]  = 16'b0101001000000010;  // lw $2, 2($0)
+     Imem[1]  = 16'b0101001000000100;  // lw $2, 2($0)
      Imem[2]  = 16'b0000000000000000;  // nop
      Imem[3]  = 16'b0000000000000000;  // nop
      Imem[4]  = 16'b0000000000000000;  // nop
-     Imem[5]  = 16'b0111011011000000;  // slt $3, $1, $2
+     Imem[5]  = 16'b0111011011000000;  // slt $3, $1, $2 ($s < $t, $d = 1)
      Imem[6]  = 16'b0000000000000000;  // nop
      Imem[7]  = 16'b0000000000000000;  // nop
      Imem[8]  = 16'b0000000000000000;  // nop
-     Imem[9]  = 16'b1000110000000101;  // beq $3, $0, Imem[15]  
+     Imem[9]  = 16'b1000110000000011;  // beq $3, $0, Imem[15]  
      Imem[10] = 16'b0000000000000000;  // nop
      Imem[11] = 16'b0000000000000000;  // nop
      Imem[12] = 16'b0000000000000000;  // nop
-     Imem[13] = 16'b0110000100000010;  // sw $1, 2($0)
+     Imem[13] = 16'b0110000100000100;  // sw $1, 2($0)
      Imem[14] = 16'b0110001000000000;  // sw $2, 0($0)
      Imem[15] = 16'b0000000000000000;  // nop
      Imem[16] = 16'b0000000000000000;  // nop
      Imem[17] = 16'b0000000000000000;  // nop
      Imem[18] = 16'b0101000100000000;  // lw $1, 0($0)
-     Imem[19] = 16'b0101001000000010;  // lw $2, 2($0)
+     Imem[19] = 16'b0101001000000100;  // lw $2, 2($0)
      Imem[20] = 16'b0000000000000000;  // nop
      Imem[21] = 16'b0000000000000000;  // nop
      Imem[22] = 16'b0000000000000000;  // nop
@@ -407,7 +407,6 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, EXMEM_IR, MEMWB_IR, WD);
     // Data
      DMemory [0] = 16'h5; // switch the cells and see how the simulation output changes
      DMemory [1] = 16'h7; // (beq is taken if [0]=32'h7; [1]=32'h5, not taken otherwise)
-
   end
 
 
@@ -416,6 +415,8 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, EXMEM_IR, MEMWB_IR, WD);
 
   //=== IF STAGE ===
    reg[15:0] IFID_IR, IFID_PC2;
+   reg [1:0] EXMEM_Branch;
+   reg EXMEM_Zero;
   //--------------------------------
    ALU fetch (3'b010,PC,16'b10,PC2,Unused);
    
@@ -439,17 +440,14 @@ module CPU (clk, PC, IFID_IR, IDEX_IR, EXMEM_IR, MEMWB_IR, WD);
    reg [1:0]  IDEX_rt,IDEX_rd;
   //----------------------------------------------------
    reg_file rf (IFID_IR[11:10],IFID_IR[9:8],MEMWB_rd,WD,MEMWB_RegWrite,RD1,RD2,clk);
-   MainControl MainCtr (IFID_IR[15:12],Control); 
+   MainControl MainCtr (IFID_IR[15:12], Control); 
    assign SignExtend = {{8{IFID_IR[7]}},IFID_IR[7:0]};
-  
 
   
   //=== EXE STAGE ===
    wire [15:0] Target;
   //----------------------------------------------------
    reg EXMEM_RegWrite,EXMEM_MemtoReg,  EXMEM_MemWrite;
-   reg [1:0] EXMEM_Branch;
-   reg EXMEM_Zero;
    reg [15:0] EXMEM_Target,EXMEM_ALUOut,EXMEM_RD2;
    reg [15:0] EXMEM_IR; // For monitoring the pipeline
    reg [1:0] EXMEM_rd;
@@ -563,35 +561,35 @@ endmodule
 BRANCH TAKEN:
 
 time PC IFID_IR IDEX_IR EXMEM_IR MEMWB_IR WD
-0 0 0000 xxxx xxxx xxxx xxxx
-1 2 5100 0000 xxxx xxxx xxxx
-3 4 5202 5100 0000 xxxx xxxx
-5 6 0000 5202 5100 0000 0000
-7 8 0000 0000 5202 5100 0005
-9 10 0000 0000 0000 5202 0005
-11 12 76c0 0000 0000 0000 0000
-13 14 0000 76c0 0000 0000 0000
-15 16 0000 0000 76c0 0000 0000
-17 18 0000 0000 0000 76c0 0000
-19 20 8c05 0000 0000 0000 0000
-21 22 0000 8c05 0000 0000 0000
-23 24 0000 0000 8c05 0000 0000
-25 40 0000 0000 0000 8c05 0000
-27 42 0000 0000 0000 0000 0000
-29 44 0000 0000 0000 0000 0000
-31 46 0000 0000 0000 0000 0000
-33 48 16c0 0000 0000 0000 0000
-35 50 xxxx 16c0 0000 0000 0000
-37 52 xxxx xxxx 16c0 0000 0000
-39 54 xxxx xxxx xxxx 16c0 0000
-41 56 xxxx xxxx xxxx xxxx xxxx
-43 58 xxxx xxxx xxxx xxxx xxxx
-45 60 xxxx xxxx xxxx xxxx xxxx
-47 62 xxxx xxxx xxxx xxxx xxxx
-49 64 xxxx xxxx xxxx xxxx xxxx
-51 66 xxxx xxxx xxxx xxxx xxxx
-53 68 xxxx xxxx xxxx xxxx xxxx
-55 70 xxxx xxxx xxxx xxxx xxxx
+0 	  0 0000	xxxx	xxxx	 xxxx	  xxxx
+1 	  2 5100	0000	xxxx	 xxxx	  xxxx
+3 	  4 5202	5100	0000	 xxxx	  xxxx
+5 	  6 0000	5202	5100	 0000	  0000
+7 	  8 0000	0000	5202	 5100	  0007
+9 	 10 0000	0000	0000	 5202	  0005
+11 	 12 76c0	0000	0000	 0000	  0000
+13 	 14 0000	76c0	0000	 0000	  0000
+15 	 16 0000	0000	76c0	 0000	  0000
+17 	 18 0000	0000	0000	 76c0	  0000
+19 	 20 8c05	0000	0000	 0000	  0000
+21 	 22 0000	8c05	0000	 0000	  0000
+23 	 24 0000	0000	8c05	 0000 	  0000
+25 	 40 0000	0000	0000	 8c05	  0000
+27 	 42 0000	0000	0000	 0000	  0000
+29 	 44 0000	0000	0000	 0000	  0000
+31	 46 0000	0000	0000	 0000	  0000
+33 	 48 16c0	0000	0000	 0000	  0000
+35 	 50 xxxx	16c0	0000	 0000	  0000
+37 	 52 xxxx	xxxx	16c0	 0000	  0000
+39 	 54 xxxx	xxxx	xxxx	 16c0	  0000
+41 	 56 xxxx	xxxx	xxxx	 xxxx	  xxxx
+43 	 58 xxxx	xxxx	xxxx	 xxxx	  xxxx
+45 	 60 xxxx	xxxx	xxxx	 xxxx	  xxxx
+47 	 62 xxxx	xxxx	xxxx	 xxxx	  xxxx
+49	 64 xxxx	xxxx	xxxx	 xxxx	  xxxx
+51 	 66 xxxx	xxxx	xxxx	 xxxx	  xxxx
+53 	 68 xxxx	xxxx	xxxx	 xxxx	  xxxx
+55 	 70 xxxx	xxxx	xxxx	 xxxx	  xxxx
 
 
 
@@ -600,34 +598,34 @@ time PC IFID_IR IDEX_IR EXMEM_IR MEMWB_IR WD
 BRANCH NOT TAKEN (bne instead of beq):
 
 time PC IFID_IR IDEX_IR EXMEM_IR MEMWB_IR WD
-0 0 0000 xxxx xxxx xxxx xxxx
-1 2 5100 0000 xxxx xxxx xxxx
-3 4 5202 5100 0000 xxxx xxxx
-5 6 0000 5202 5100 0000 0000
-7 8 0000 0000 5202 5100 0005
-9 10 0000 0000 0000 5202 0005
-11 12 76c0 0000 0000 0000 0000
-13 14 0000 76c0 0000 0000 0000
-15 16 0000 0000 76c0 0000 0000
-17 18 0000 0000 0000 76c0 0000
-19 20 9c05 0000 0000 0000 0000
-21 22 0000 9c05 0000 0000 0000
-23 24 0000 0000 9c05 0000 0000
-25 26 0000 0000 0000 9c05 0000
-27 28 6102 0000 0000 0000 0000
-29 30 6200 6102 0000 0000 0000
-31 32 0000 6200 6102 0000 0000
-33 34 0000 0000 6200 6102 0002
-35 36 0000 0000 0000 6200 0000
-37 38 5100 0000 0000 0000 0000
-39 40 5202 5100 0000 0000 0000
-41 42 0000 5202 5100 0000 0000
-43 44 0000 0000 5202 5100 0005
-45 46 0000 0000 0000 5202 0005
-47 48 16c0 0000 0000 0000 0000
-49 50 xxxx 16c0 0000 0000 0000
-51 52 xxxx xxxx 16c0 0000 0000
-53 54 xxxx xxxx xxxx 16c0 0000
-55 56 xxxx xxxx xxxx xxxx xxxx
+0 	 0  0000 xxxx xxxx xxxx xxxx
+1 	 2  5100 0000 xxxx xxxx xxxx
+3 	 4  5202 5100 0000 xxxx xxxx
+5 	 6  0000 5202 5100 0000 0000
+7	 8  0000 0000 5202 5100 0005
+9 	 10 0000 0000 0000 5202 0005
+11 	 12  76c0 0000 0000 0000 0000
+13 	 14 0000 76c0 0000 0000 0000
+15 	 16 0000 0000 76c0 0000 0000
+17 	 18 0000 0000 0000 76c0 0000
+19 	 20 9c05 0000 0000 0000 0000
+21 	 22 0000 9c05 0000 0000 0000
+23 	 24 0000 0000 9c05 0000 0000
+25 	 26 0000 0000 0000 9c05 0000
+27 	 28 6102 0000 0000 0000 0000
+29 	 30 6200 6102 0000 0000 0000
+31 	 32 0000 6200 6102 0000 0000
+33 	 34 0000 0000 6200 6102 0002
+35 	 36 0000 0000 0000 6200 0000
+37 	 38 5100 0000 0000 0000 0000
+39 	 40 5202 5100 0000 0000 0000
+41 	 42 0000 5202 5100 0000 0000
+43 	 44 0000 0000 5202 5100 0005
+45 	 46 0000 0000 0000 5202 0005
+47 	 48 16c0 0000 0000 0000 0000
+49 	 50 xxxx 16c0 0000 0000 0000
+51 	 52 xxxx xxxx 16c0 0000 0000
+53 	 54 xxxx xxxx xxxx 16c0 0000
+55 	 56 xxxx xxxx xxxx xxxx xxxx
 
 */
