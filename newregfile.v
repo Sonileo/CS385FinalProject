@@ -17,6 +17,8 @@ module reg_file (rr1,rr2,wr,wd,regwrite,rd1,rd2,clock);
    D_flip_flop r1 (wd,c1,q1);
    D_flip_flop r2 (wd,c2,q2);
    D_flip_flop r3 (wd,c3,q3);
+   
+   module register()
 
 // output port
 
